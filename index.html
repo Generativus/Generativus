@@ -16,7 +16,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            overflow: hidden; /* Empêche le défilement */
+            overflow: hidden; /* Empêche le défilement du corps */
         }
 
         /* Mode Amical */
@@ -35,6 +35,7 @@
             flex-grow: 1; /* Permet au conteneur de prendre l'espace disponible */
             padding: 10px;
             box-sizing: border-box;
+            height: 100vh; /* S'assure que le conteneur prend toute la hauteur disponible */
         }
 
         /* Section des statistiques */
@@ -46,7 +47,16 @@
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Séparateur subtil */
             margin-bottom: 10px;
+            /* Pas de position fixed pour permettre le flex-grow sur le contenu scrollable */
         }
+
+        /* Nouveau conteneur pour le contenu défilable (image + texte principal) */
+        #scrollable-content {
+            flex-grow: 1; /* Prend tout l'espace vertical disponible */
+            overflow-y: auto; /* Permet le défilement vertical */
+            padding-right: 5px; /* Pour éviter que la scrollbar ne masque le contenu */
+        }
+
 
         /* Zone de l'image - MÀJ pour 16:9 */
         #game-image-container {
@@ -82,11 +92,11 @@
 
         /* Zone de texte principale */
         #main-text {
-            flex-grow: 1; /* Prend l'espace restant */
+            /* flex-grow: 1; Ancien style, maintenant géré par #scrollable-content */
             padding: 10px 0;
             font-size: 0.9em;
             line-height: 1.6;
-            overflow-y: auto; /* Permet le défilement si le texte est trop long */
+            /* overflow-y: auto; Ancien style, maintenant géré par #scrollable-content */
             margin-bottom: 10px;
             text-align: justify;
         }
@@ -103,6 +113,7 @@
             display: flex;
             align-items: center;
             padding: 10px 0;
+            /* Pas de position fixed pour permettre le flex-grow sur le contenu scrollable */
         }
 
         #player-input {
@@ -313,16 +324,19 @@
             <span id="player-agi">AGI: -</span>
         </div>
 
-        <!-- Zone de l'image de jeu -->
-        <div id="game-image-container">
-            <img id="game-image" src="" alt="Image de jeu">
-            <div id="image-loading-indicator">Chargement de l'image...</div>
-        </div>
+        <!-- Nouveau conteneur pour le contenu défilable -->
+        <div id="scrollable-content">
+            <!-- Zone de l'image de jeu -->
+            <div id="game-image-container">
+                <img id="game-image" src="" alt="Image de jeu">
+                <div id="image-loading-indicator">Chargement de l'image...</div>
+            </div>
 
-        <!-- Zone de texte principale de l'IA -->
-        <div id="main-text">
-            Bienvenue dans Generativus ! Un monde créé par l'IA.<br>
-            Entrez votre nom et choisissez votre mode de jeu (Mode Gore ou Mode Amical) pour commencer.
+            <!-- Zone de texte principale de l'IA -->
+            <div id="main-text">
+                Bienvenue dans Generativus ! Un monde créé par l'IA.<br>
+                Entrez votre nom et choisissez votre mode de jeu (Mode Gore ou Mode Amical) pour commencer.
+            </div>
         </div>
 
         <!-- Zone de saisie du joueur -->
@@ -1022,4 +1036,3 @@
     </script>
 </body>
 </html>
-
