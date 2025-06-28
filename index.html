@@ -358,11 +358,9 @@
         // 3. Dans l'onglet "Général", faites défiler jusqu'à "Vos applications" et choisissez votre application web.
         // 4. Copiez l'objet "firebaseConfig".
         // 5. Remplacez le contenu de `YOUR_FIREBASE_CONFIG_HERE` ci-dessous.
-        // Laissez GEMINI_TEXT_API_KEY et GEMINI_IMAGE_API_KEY vides, Canvas les injecte automatiquement.
         // ==============================================================================
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // 'default-app-id' si non en Canvas
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // REMPLACEZ CE BLOC PAR VOTRE PROPRE OBJET firebaseConfig DEPUIS LA CONSOLE FIREBASE
             apiKey: "AIzaSyDuEm2htptr7pY_EnFoEJPmUOYhKzYC9pE",
             authDomain: "generativus-b65cb.firebaseapp.com",
             projectId: "generativus-b65cb",
@@ -373,9 +371,14 @@
         };
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Configuration de l'API Gemini
-        const GEMINI_TEXT_API_KEY = ""; // Laisser vide pour que Canvas l'injecte
-        const GEMINI_IMAGE_API_KEY = ""; // Laisser vide pour que Canvas l'injecte
+        // ==============================================================================
+        // CONFIGURATION DES CLÉS API GEMINI POUR DÉPLOIEMENT HORS CANVAS (ex: GitHub Pages)
+        // Vous devez obtenir ces clés depuis Google AI Studio (aistudio.google.com/app/apikey).
+        // Créez une nouvelle clé API et collez-la ci-dessous pour chaque API.
+        // Si vous laissez ces chaînes vides, l'application tentera de les obtenir de l'environnement Canvas.
+        // ==============================================================================
+        const GEMINI_TEXT_API_KEY = "AIzaSyBBRm5QNpoiz4UeFLN-ARuGDFpXjhTeWP0"; // REMPLACEZ PAR VOTRE CLÉ API TEXTE
+        const GEMINI_IMAGE_API_KEY = "AIzaSyA1lOo6sFFDhy2jtzWJgh33rcVoTDQ07C4"; // REMPLACEZ PAR VOTRE CLÉ API IMAGE
 
         // Variables globales du jeu
         let player = {
@@ -547,11 +550,14 @@
 
             try {
                 // Pour imagen-3.0-generate-002, la clé API est passée dans l'URL.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_IMAGE_API_KEY}`;
+                // Fallback pour les clés API si elles sont vides
+                const imageApiKey = GEMINI_IMAGE_API_KEY === "" ? "" : GEMINI_IMAGE_API_KEY; // Pas de "YOUR_GEMINI_IMAGE_API_KEY" ici car elle sera remplie.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${imageApiKey}`;
+
                 const payload = {
                     instances: {
-                        // MÀJ du prompt pour le ratio 16:9
-                        prompt: `${imagePrompt}, pixel art 16:9, ${player.mode === 'Gore' ? 'black and white, dark, grim, scary' : 'vivid colors, cute, friendly, bright'}`
+                        // MÀJ du prompt pour le ratio 16:9 et le style
+                        prompt: `${imagePrompt}, pixel art 16:9, no video game style, ${player.mode === 'Gore' ? 'black and white, dark, grim, scary' : 'vivid colors, cute, friendly, bright'}`
                     },
                     parameters: {
                         sampleCount: 1
@@ -864,8 +870,10 @@
          * @returns {Promise<string>} La réponse textuelle ou JSON de l'IA.
          */
         async function callGeminiTextAPI(history, generationConfig = {}) {
+            // Fallback pour les clés API si elles sont vides
+            const textApiKey = GEMINI_TEXT_API_KEY === "" ? "" : GEMINI_TEXT_API_KEY; // Pas de "YOUR_GEMINI_TEXT_API_KEY" ici car elle sera remplie.
             const payload = { contents: history, generationConfig: generationConfig };
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_TEXT_API_KEY}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${textApiKey}`;
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -1014,3 +1022,4 @@
     </script>
 </body>
 </html>
+
