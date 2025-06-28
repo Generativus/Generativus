@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generativus</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@404&display=swap" rel="stylesheet">
+    <style>
+        /* Styles de base pour le jeu */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Couleur de fond sombre par défaut */
+            color: #e2e8f0; /* Couleur de texte claire par défaut */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Empêche le défilement */
+        }
+
+        /* Styles spécifiques pour le mode Gore */
+        body.mode-gore {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .mode-gore .game-container, .mode-gore .menu-container {
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px #ffffff;
+            background-color: #000000;
+        }
+        .mode-gore .game-cell, .mode-gore .map-container {
+             border: 1px solid #ffffff; /* Cells and map border */
+        }
+        .mode-gore .player-cell {
+            background-color: #ffffff;
+        }
+        .mode-gore .enemy-cell {
+            background-color: #ff0000; /* Red for enemies in Gore mode */
+        }
+        .mode-gore .item-cell {
+            background-color: #00ff00; /* Green for items in Gore mode */
+        }
+        .mode-gore button {
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            box-shadow: 2px 2px 0 #ffffff;
+        }
+        .mode-gore button:hover {
+            background-color: #555555;
+            box-shadow: 4px 4px 0 #ffffff;
+        }
+        .mode-gore input[type="text"] {
+            border: 1px solid #ffffff;
+            background-color: #333333;
+            color: #ffffff;
+        }
+        .mode-gore .modal-content {
+            background-color: #000000;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+        }
+        .mode-gore .score-list li {
+            border-bottom: 1px dashed #ffffff;
+        }
+        .mode-gore .loading-spinner {
+            border-top-color: #fff;
+            border-right-color: #fff;
+        }
+
+
+        /* Styles spécifiques pour le mode Amical */
+        body.mode-friendly {
+            background-color: #f7e1e6; /* Rose clair */
+            color: #333333;
+        }
+        .mode-friendly .game-container, .mode-friendly .menu-container {
+            border: 2px solid #f06292; /* Rose vif */
+            box-shadow: 0 0 10px #f06292;
+            background-color: #ffebee; /* Rose très clair */
+        }
+        .mode-friendly .game-cell, .mode-friendly .map-container {
+            border: 1px solid #ffab91; /* Orange clair for cells and map border */
+        }
+        .mode-friendly .player-cell {
+            background-color: #ffccbc; /* Orange pastel */
+        }
+        .mode-friendly .enemy-cell {
+            background-color: #ef9a9a; /* Rouge doux */
+        }
+        .mode-friendly .item-cell {
+            background-color: #a5d6a7; /* Vert doux */
+        }
+        .mode-friendly button {
+            background-color: #f06292;
+            color: #ffffff;
+            border: 1px solid #c2185b;
+            box-shadow: 2px 2px 0 #c2185b;
+        }
+        .mode-friendly button:hover {
+            background-color: #e91e63;
+            box-shadow: 4px 4px 0 #c2185b;
+        }
+        .mode-friendly input[type="text"] {
+            border: 1px solid #c2185b;
+            background-color: #ffcdd2;
+            color: #333333;
+        }
+        .mode-friendly .modal-content {
+            background-color: #ffebee;
+            border: 2px solid #f06292;
+            color: #333333;
+        }
+        .mode-friendly .score-list li {
+            border-bottom: 1px dashed #f06292;
+        }
+        .mode-friendly .loading-spinner {
+            border-top-color: #f06292;
+            border-right-color: #f06292;
+        }
+
+
+        /* Styles généraux pour le conteneur du jeu et du menu */
+        .game-container, .menu-container {
+            display: flex;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 1200px;
+            width: 95%;
+            box-sizing: border-box;
+            transition: all 0.5s ease-in-out;
+        }
+
+        /* Styles spécifiques au menu */
+        .menu-container {
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+        }
+
+        /* Styles spécifiques au jeu */
+        .game-area {
+            flex: 3; /* Prend plus d'espace */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding-right: 20px;
+        }
+
+        .map-container {
+            display: grid;
+            grid-template-columns: repeat(7, 50px); /* 7 colonnes, 50px de large */
+            grid-template-rows: repeat(12, 50px); /* 12 lignes, 50px de haut */
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative; /* Pour le positionnement des cellules */
+        }
+
+        .game-cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            transition: background-color 0.2s ease;
+        }
+
+        .player-cell {
+            font-size: 2em; /* Bigger icon for player */
+        }
+
+        .event-box {
+            width: 100%;
+            height: 600px; /* Taille similaire à la carte */
+            padding: 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .sidebar {
+            flex: 1; /* Prend moins d'espace */
+            padding-left: 20px;
+            border-left: 1px solid currentColor; /* Couleur du texte du mode */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .inventory-slot {
+            width: 50px;
+            height: 50px;
+            border: 1px solid currentColor;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2em;
+            overflow: hidden; /* Ensure content stays within */
+        }
+
+        .inventory-slot.equipped {
+            border: 2px solid #38a169; /* Green border for equipped items */
+        }
+
+        .inventory-slot:hover {
+            opacity: 0.8;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .player-hp-bar {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 20px;
+            width: 100%;
+        }
+
+        .player-hp-fill {
+            background-color: #4CAF50;
+            height: 100%;
+            transition: width 0.3s ease-in-out;
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            .sidebar {
+                border-left: none;
+                border-top: 1px solid currentColor;
+                padding-left: 0;
+                padding-top: 20px;
+            }
+            .map-container {
+                grid-template-columns: repeat(7, 40px); /* Smaller cells on mobile */
+                grid-template-rows: repeat(12, 40px);
+            }
+            .game-cell {
+                width: 40px;
+                height: 40px;
+            }
+            .inventory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            }
+            .inventory-slot {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body class="mode-gore">
+    <!-- Main Menu -->
+    <div id="mainMenu" class="menu-container hidden">
+        <h1 class="text-5xl font-bold mb-6">Generativus</h1>
+        <div class="w-full max-w-sm flex flex-col gap-4">
+            <input type="text" id="playerNameInput" placeholder="Nom de Personnage" class="p-3 rounded-lg text-lg text-center"/>
+            <div class="flex justify-around gap-4">
+                <button id="goreModeBtn" class="flex-1 p-3 rounded-lg text-xl font-semibold shadow-md">Mode Gore</button>
+                <button id="friendlyModeBtn" class="flex-1 p-3 rounded-lg text-xl font-semibold shadow-md">Mode Amical</button>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl mt-8">
+            <div class="flex-1 p-6 rounded-lg border-2">
+                <h2 class="text-3xl font-bold mb-4">Classement - Mode Gore</h2>
+                <ul id="goreLeaderboard" class="score-list text-left text-lg">
+                    <!-- Scores will be loaded here -->
+                    <li>Chargement...</li>
+                </ul>
+            </div>
+            <div class="flex-1 p-6 rounded-lg border-2">
+                <h2 class="text-3xl font-bold mb-4">Classement - Mode Amical</h2>
+                <ul id="friendlyLeaderboard" class="score-list text-left text-lg">
+                    <!-- Scores will be loaded here -->
+                    <li>Chargement...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game UI -->
+    <div id="gameUI" class="game-container hidden">
+        <div class="game-area flex flex-col items-center">
+            <div id="mapContainer" class="map-container hidden">
+                <!-- Map cells will be generated here -->
+            </div>
+            <div id="eventBox" class="event-box hidden">
+                <p id="eventText" class="text-xl"></p>
+                <div id="eventOptions" class="flex flex-wrap gap-2 mt-4"></div>
+                <input type="text" id="playerActionInput" placeholder="Votre action..." class="w-full p-2 mt-4 rounded-lg"/>
+                <button id="submitActionButton" class="mt-4 p-3 rounded-lg text-lg font-semibold w-full">Soumettre l'action</button>
+            </div>
+            <div class="flex justify-center gap-4 mt-4 w-full">
+                <button id="moveUpBtn" class="p-3 rounded-lg text-xl font-semibold">&uarr; Avancer</button>
+                <button id="moveDownBtn" class="p-3 rounded-lg text-xl font-semibold">&darr; Reculer</button>
+            </div>
+        </div>
+
+        <div class="sidebar flex flex-col items-start gap-5 p-5 rounded-lg">
+            <h2 class="text-3xl font-bold mb-4" id="playerDisplayName">Nom du Joueur</h2>
+            <div class="w-full">
+                <h3 class="text-xl font-semibold">Vie: <span id="playerHp">100/100</span></h3>
+                <div class="player-hp-bar">
+                    <div id="playerHpFill" class="player-hp-fill" style="width: 100%;"></div>
+                </div>
+            </div>
+            <h3 class="text-xl font-semibold">Attaque: <span id="playerAttack">1</span></h3>
+            <h3 class="text-xl font-semibold">Agilité: <span id="playerAgility">1</span></h3>
+
+            <h3 class="text-xl font-semibold mt-4">Inventaire</h3>
+            <p class="text-sm">Cliquez pour utiliser/équiper</p>
+            <div class="inventory-grid grid grid-cols-4 gap-2 w-full">
+                <div class="inventory-slot" data-slot="head">Casque</div>
+                <div class="inventory-slot" data-slot="chest">Plastron</div>
+                <div class="inventory-slot" data-slot="legs">Jambières</div>
+                <div class="inventory-slot" data-slot="arms">Brassards</div>
+                <div class="inventory-slot" data-slot="weapon1">Arme 1</div>
+                <div class="inventory-slot" data-slot="weapon2">Arme 2</div>
+                <div class="inventory-slot" data-slot="food1">Nourriture 1</div>
+                <div class="inventory-slot" data-slot="food2">Nourriture 2</div>
+            </div>
+            <button id="returnToMenuBtn" class="mt-auto p-3 rounded-lg text-lg font-semibold w-full">Retour au Menu</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal hidden">
+        <div id="modalContent" class="modal-content">
+            <h2 id="modalTitle" class="text-3xl font-bold"></h2>
+            <p id="modalMessage" class="text-xl"></p>
+            <div class="flex justify-center gap-4">
+                <button id="modalConfirmBtn" class="p-3 rounded-lg text-lg font-semibold hidden">Confirmer</button>
+                <button id="modalCancelBtn" class="p-3 rounded-lg text-lg font-semibold hidden">Annuler</button>
+                <button id="modalOkBtn" class="p-3 rounded-lg text-lg font-semibold hidden">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingOverlay" class="modal hidden">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script type="module">
+        // Import des modules Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, onSnapshot, collection, query, where, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous et la ligne correspondante dans initializeFirebase()
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+
+
+        // Variables globales pour l'application Firebase et l'utilisateur
+        let app;
+        let db;
+        let auth;
+        let userId;
+        let isAuthReady = false;
+
+        // Récupération de l'ID de l'application (pour Firebase Firestore paths)
+        // 'default-generativus-app' est utilisé si le jeu n'est pas exécuté dans un environnement Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-generativus-app';
+
+        // Configuration Firebase (fournie par l'utilisateur)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuEm2htptr7pY_EnFoEJPmUOYhKzYC9pE",
+            authDomain: "generativus-b65cb.firebaseapp.com",
+            projectId: "generativus-b65cb",
+            storageBucket: "generativus-b65cb.firebasestorage.app",
+            messagingSenderId: "853953342399",
+            appId: "1:853953342399:web:433b07d4396a136a60cf0a",
+            measurementId: "G-KE0ZEXWBPR"
+        };
+        // Jeton d'authentification initial pour l'environnement Canvas
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Clé API Gemini (vide car injectée par l'environnement Canvas)
+        const GEMINI_API_KEY = "";
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        // État du jeu
+        let gameState = {
+            playerName: '',
+            mode: '', // 'gore' ou 'friendly'
+            hp: 100,
+            maxHp: 100,
+            attack: 1,
+            agility: 1,
+            inventory: {
+                head: null, chest: null, legs: null, arms: null,
+                weapon1: null, weapon2: null,
+                food1: null, food2: null
+            },
+            difficulty: 0, // Pourcentage, 0-25
+            cellsTraversed: 0,
+            eventsSurvived: 0,
+            currentMap: [], // Grille 7x12
+            playerPosition: { x: 3, y: 11 }, // Joueur sur la 3ème rangée visuellement (index 2), au centre (index 3)
+            gamePhase: 'menu', // 'menu', 'map', 'event', 'combat', 'gameover'
+            currentEvent: null, // Données de l'événement en cours
+            leaderboard: {
+                gore: [],
+                friendly: []
+            },
+            dialogHistory: [] // Historique du dialogue avec l'IA
+        };
+
+        // Références aux éléments du DOM
+        const mainMenu = document.getElementById('mainMenu');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const goreModeBtn = document.getElementById('goreModeBtn');
+        const friendlyModeBtn = document.getElementById('friendlyModeBtn');
+        const goreLeaderboardList = document.getElementById('goreLeaderboard');
+        const friendlyLeaderboardList = document.getElementById('friendlyLeaderboard');
+
+        const gameUI = document.getElementById('gameUI');
+        const playerDisplayName = document.getElementById('playerDisplayName');
+        const playerHpSpan = document.getElementById('playerHp');
+        const playerHpFill = document.getElementById('playerHpFill');
+        const playerAttackSpan = document.getElementById('playerAttack');
+        const playerAgilitySpan = document.getElementById('playerAgility');
+        const inventoryGrid = gameUI.querySelector('.inventory-grid');
+        const mapContainer = document.getElementById('mapContainer');
+        const eventBox = document.getElementById('eventBox');
+        const eventText = document.getElementById('eventText');
+        const eventOptions = document.getElementById('eventOptions');
+        const playerActionInput = document.getElementById('playerActionInput');
+        const submitActionButton = document.getElementById('submitActionButton');
+        const moveUpBtn = document.getElementById('moveUpBtn');
+        const moveDownBtn = document.getElementById('moveDownBtn');
+        const returnToMenuBtn = document.getElementById('returnToMenuBtn');
+
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // --- Fonctions d'initialisation Firebase ---
+        async function initializeFirebase() {
+            // Appeler initializeApp avec la configuration Firebase fournie
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous
+            // const analytics = getAnalytics(app);
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("Firebase user ID:", userId);
+                } else {
+                    // Sign in anonymously if no user is authenticated
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                        userId = auth.currentUser.uid;
+                        console.log("Signed in anonymously. User ID:", userId);
+                    } catch (error) {
+                        console.error("Firebase authentication error:", error);
+                        showModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Veuillez recharger la page.");
+                    }
+                }
+                isAuthReady = true;
+                // Une fois authentifié, afficher le menu principal et charger les classements
+                displayMainMenu();
+                fetchLeaderboards();
+            });
+        }
+
+        // --- Fonctions Firestore pour les classements ---
+        async function fetchLeaderboards() {
+            if (!isAuthReady || !db) {
+                console.log("Firestore not ready, skipping leaderboard fetch.");
+                return;
+            }
+
+            goreLeaderboardList.innerHTML = '<li>Chargement...</li>';
+            friendlyLeaderboardList.innerHTML = '<li>Chargement...</li>';
+
+            try {
+                // Requête pour le mode Gore
+                const goreQuery = query(
+                    collection(db, `artifacts/${appId}/public/data/leaderboards`),
+                    where('mode', '==', 'gore'),
+                    orderBy('score', 'desc'),
+                    limit(5)
+                );
+                const goreSnapshot = await getDocs(goreQuery);
+                updateLeaderboardUI(goreLeaderboardList, goreSnapshot);
+
+                // Requête pour le mode Amical
+                const friendlyQuery = query(
+                    collection(db, `artifacts/${appId}/public/data/leaderboards`),
+                    where('mode', '==', 'friendly'),
+                    orderBy('score', 'desc'),
+                    limit(5)
+                );
+                const friendlySnapshot = await getDocs(friendlyQuery);
+                updateLeaderboardUI(friendlyLeaderboardList, friendlySnapshot);
+
+            } catch (error) {
+                console.error("Erreur lors du chargement des classements:", error);
+                goreLeaderboardList.innerHTML = '<li>Erreur de chargement.</li>';
+                friendlyLeaderboardList.innerHTML = '<li>Erreur de chargement.</li>';
+            }
+        }
+
+        function updateLeaderboardUI(ulElement, snapshot) {
+            ulElement.innerHTML = ''; // Clear previous list
+            if (snapshot.empty) {
+                ulElement.innerHTML = '<li>Aucun score enregistré.</li>';
+                return;
+            }
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const li = document.createElement('li');
+                li.className = 'py-1 border-b last:border-b-0';
+                li.textContent = `${index + 1}. ${data.playerName}: ${data.score} points`;
+                ulElement.appendChild(li);
+            });
+        }
+
+        async function saveScore() {
+            if (!isAuthReady || !db || !userId) {
+                console.log("Firestore not ready or user not authenticated, skipping score save.");
+                return;
+            }
+
+            const currentScore = gameState.cellsTraversed + gameState.eventsSurvived;
+            const mode = gameState.mode;
+
+            try {
+                // Vérifier s'il y a de la place dans le top 5 ou si le score est meilleur
+                const q = query(
+                    collection(db, `artifacts/${appId}/public/data/leaderboards`),
+                    where('mode', '==', mode),
+                    orderBy('score', 'asc'),
+                    limit(5)
+                );
+                const snapshot = await getDocs(q);
+
+                let shouldAddScore = false;
+                if (snapshot.size < 5) {
+                    shouldAddScore = true;
+                } else {
+                    // S'il y a 5 scores, vérifie si le score actuel est meilleur que le plus bas
+                    const lowestScoreDoc = snapshot.docs[0]; // Car trié par 'asc'
+                    if (currentScore > lowestScoreDoc.data().score) {
+                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/leaderboards`, lowestScoreDoc.id));
+                        shouldAddScore = true;
+                    }
+                }
+
+                if (shouldAddScore) {
+                    await addDoc(collection(db, `artifacts/${appId}/public/data/leaderboards`), {
+                        playerName: gameState.playerName,
+                        score: currentScore,
+                        mode: mode,
+                        timestamp: new Date()
+                    });
+                    console.log("Score enregistré avec succès !");
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement du score:", error);
+            }
+        }
+
+        // --- Fonctions de l'API Gemini ---
+        async function callGemini(prompt, history = []) {
+            showLoading();
+            try {
+                let chatHistory = [];
+                // Ajouter l'historique du dialogue précédent
+                history.forEach(entry => {
+                    chatHistory.push({ role: entry.role, parts: [{ text: entry.text }] });
+                });
+                // Ajouter le prompt actuel
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = {
+                    contents: chatHistory,
+                };
+                console.log("Sending to Gemini:", payload);
+
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                console.log("Received from Gemini:", result);
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    gameState.dialogHistory.push({ role: "user", text: prompt });
+                    gameState.dialogHistory.push({ role: "model", text: text });
+                    return text;
+                } else {
+                    console.error("Structure de réponse Gemini inattendue:", result);
+                    return "Une erreur est survenue lors de la communication avec l'IA. Veuillez réessayer.";
+                }
+            } catch (error) {
+                console.error("Erreur d'appel API Gemini:", error);
+                return "Une erreur de réseau ou de serveur est survenue. Veuillez vérifier votre connexion.";
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function generateBackstory() {
+            const prompt = `Génère une brève histoire d'origine (environ 3-4 phrases) pour un personnage nommé "${gameState.playerName}" qui commence son aventure dans le donjon "Generativus". Adapte le ton au mode de jeu "${gameState.mode}". En mode "gore", l'histoire doit être sombre et brutale. En mode "amical", l'histoire doit être légère et pleine d'espoir.`;
+            return callGemini(prompt);
+        }
+
+        async function generateEvent(type, difficulty, playerStats, playerInventory) {
+            const inventoryDescription = Object.entries(playerInventory)
+                .filter(([slot, item]) => item !== null)
+                .map(([slot, item]) => `${item.name} (${slot})`)
+                .join(', ') || 'aucun';
+
+            const prompt = `
+            Tu es le maître de jeu du donjon "Generativus".
+            Le joueur "${gameState.playerName}" (HP: ${playerStats.hp}/${playerStats.maxHp}, Attaque: ${playerStats.attack}, Agilité: ${playerStats.agility})
+            est équipé de: ${inventoryDescription}.
+            Le jeu est en mode "${gameState.mode}" (gore = sombre/brutal, amical = léger/coloré).
+            La difficulté actuelle est de ${difficulty}%.
+
+            Génère un ${type} aléatoire.
+            - Si c'est un 'ennemi', décris la rencontre et les options de combat (attaquer, tenter de fuir, essayer une action ingénieuse).
+            - Si c'est un 'piège', décris le piège, ses conséquences initiales, et les options pour le désamorcer/éviter.
+            - Si c'est un 'événement contextuel', décris la situation et les options d'interaction.
+
+            Pour chaque interaction :
+            1. Décris la scène.
+            2. Propose des options d'action que le joueur peut choisir, ou indique clairement que le joueur peut saisir une action libre.
+            3. Si c'est un combat, l'IA doit gérer les PV de l'ennemi, les lancers de dés (1D6 + Attaque du joueur), l'agilité (5% d'esquive par point d'agilité pour le joueur/ennemi).
+            4. L'IA doit évaluer l'ingéniosité des actions libres et récompenser/pénaliser en fonction.
+            5. L'IA doit toujours renvoyer la nouvelle situation et les PV restants de l'ennemi si applicable.
+
+            Exemple de réponse attendue:
+            "Vous entrez dans une salle sombre. Une ombre se déplace dans le coin. Que faites-vous ? (1. Attaquer l'ombre, 2. Examiner la salle, 3. Tenter de fuir)"
+
+            Répond en français.
+            `;
+            return callGemini(prompt);
+        }
+
+        async function resolvePlayerAction(action, currentEvent, playerStats, playerInventory, difficulty) {
+            const inventoryDescription = Object.entries(playerInventory)
+                .filter(([slot, item]) => item !== null)
+                .map(([slot, item]) => `${item.name} (${slot})`)
+                .join(', ') || 'aucun';
+
+            const prompt = `
+            Le joueur "${gameState.playerName}" (HP: ${playerStats.hp}/${playerStats.maxHp}, Attaque: ${playerStats.attack}, Agilité: ${playerStats.agility})
+            est équipé de: ${inventoryDescription}.
+            Le jeu est en mode "${gameState.mode}".
+            La difficulté actuelle est de ${difficulty}%.
+
+            Contexte de l'événement actuel: "${currentEvent.description}".
+            L'action du joueur est: "${action}".
+
+            Évalue l'action du joueur en fonction du contexte, de la difficulté et des statistiques du joueur.
+            Décris les conséquences de l'action.
+            Si l'action entraîne un gain/perte de HP, une modification des statistiques, ou un gain d'objet, indique-le clairement.
+            Si l'événement est résolu, indique "FIN_EVENEMENT".
+            Si un combat commence, indique "DEBUT_COMBAT: [Nom de l'ennemi], PV: [PV de l'ennemi]".
+            Si l'action du joueur est ingénieuse, indique "INGENIOSITE_RECOMPENSE: [Description de la récompense]".
+            Si le joueur tente de modifier la difficulté du combat, évalue et applique la modification, puis indique "DIFFICULTE_MODIFIEE: [Nouvelle Difficulté]".
+
+            Exemples de format de sortie pour des actions spécifiques:
+            - "DEGATS: [nombre]": Le joueur prend des dégâts.
+            - "SOIN: [nombre]": Le joueur regagne des PV.
+            - "GAIN_OBJET: [type],[nom],[stat],[valeur]": Le joueur gagne un objet. Ex: "GAIN_OBJET: arme,Épée Rouillée,attaque,2"
+            - "STATS_MODIFIEES: [stat],[valeur]": Les stats du joueur sont modifiées temporairement.
+            - "FIN_PARTIE: [raison]": Le joueur est vaincu.
+            - "FIN_EVENEMENT": L'événement est terminé.
+            - "CONTINUE_COMBAT: [description du tour], PV Ennemi: [PV]"
+            - "VICTOIRE_COMBAT: [description de la victoire]"
+            - "FUITE_REUSSIE: [description de la fuite]"
+
+            Répond en français et sois concis dans les indicateurs (DEGATS, SOIN, etc.).
+            `;
+            return callGemini(prompt, gameState.dialogHistory);
+        }
+
+        // --- Fonctions d'interface utilisateur ---
+        function showMainMenu() {
+            gameUI.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            gameState.gamePhase = 'menu';
+            fetchLeaderboards(); // Actualise les classements à chaque retour au menu
+            applyTheme(localStorage.getItem('generativusMode') || 'gore');
+        }
+
+        function showGameUI() {
+            mainMenu.classList.add('hidden');
+            gameUI.classList.remove('hidden');
+            gameState.gamePhase = 'map';
+            renderMap();
+            updateUI();
+            applyTheme(gameState.mode);
+        }
+
+        function showEventUI(text) {
+            mapContainer.classList.add('hidden');
+            moveUpBtn.classList.add('hidden');
+            moveDownBtn.classList.add('hidden');
+            eventBox.classList.remove('hidden');
+            eventText.innerHTML = text.replace(/\n/g, '<br>'); // Permet les retours à la ligne
+            playerActionInput.value = '';
+            playerActionInput.focus();
+            eventOptions.innerHTML = ''; // Efface les options précédentes
+        }
+
+        function hideEventUI() {
+            eventBox.classList.add('hidden');
+            mapContainer.classList.remove('hidden');
+            moveUpBtn.classList.remove('hidden');
+            moveDownBtn.classList.remove('hidden');
+        }
+
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        function showModal(title, message, options = { confirm: false, cancel: false, ok: true }) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalConfirmBtn.classList.toggle('hidden', !options.confirm);
+            modalCancelBtn.classList.toggle('hidden', !options.cancel);
+            modalOkBtn.classList.toggle('hidden', !options.ok);
+            modal.classList.remove('hidden');
+            return new Promise(resolve => {
+                modalConfirmBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); };
+                modalCancelBtn.onclick = () => { modal.classList.add('hidden'); resolve(false); };
+                modalOkBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); }; // OK acts as confirm for simplicity
+            });
+        }
+
+        function applyTheme(mode) {
+            document.body.className = ''; // Reset classes
+            document.body.classList.add(`mode-${mode}`);
+            localStorage.setItem('generativusMode', mode);
+        }
+
+        // --- Fonctions de jeu ---
+        function startGame() {
+            const playerName = playerNameInput.value.trim();
+            if (!playerName) {
+                showModal("Erreur", "Veuillez entrer un nom de personnage !");
+                return;
+            }
+            if (!gameState.mode) {
+                showModal("Erreur", "Veuillez choisir un mode de jeu (Gore ou Amical) !");
+                return;
+            }
+
+            gameState.playerName = playerName;
+            gameState.hp = 100;
+            gameState.maxHp = 100;
+            gameState.attack = 1;
+            gameState.agility = 1;
+            gameState.difficulty = 0;
+            gameState.cellsTraversed = 0;
+            gameState.eventsSurvived = 0;
+            gameState.playerPosition = { x: 3, y: 11 };
+            gameState.inventory = {
+                head: null, chest: null, legs: null, arms: null,
+                weapon1: null, weapon2: null,
+                food1: null, food2: null
+            };
+            gameState.dialogHistory = [];
+
+            playerDisplayName.textContent = gameState.playerName;
+            showGameUI();
+            updateUI();
+            generateInitialMap();
+            generateAndDisplayBackstory();
+        }
+
+        async function generateAndDisplayBackstory() {
+            const backstory = await generateBackstory();
+            showModal("Votre Histoire", backstory, { ok: true });
+        }
+
+        function updateUI() {
+            playerHpSpan.textContent = `${gameState.hp}/${gameState.maxHp}`;
+            playerHpFill.style.width = `${(gameState.hp / gameState.maxHp) * 100}%`;
+            playerAttackSpan.textContent = gameState.attack;
+            playerAgilitySpan.textContent = gameState.agility;
+
+            // Mettre à jour l'inventaire visuellement
+            inventoryGrid.innerHTML = ''; // Clear existing
+            const slotTypes = ['head', 'chest', 'legs', 'arms', 'weapon1', 'weapon2', 'food1', 'food2'];
+            slotTypes.forEach(slotType => {
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'inventory-slot rounded-lg flex items-center justify-center p-1';
+                slotDiv.dataset.slot = slotType;
+
+                let icon = '';
+                let itemText = '';
+                if (gameState.inventory[slotType]) {
+                    const item = gameState.inventory[slotType];
+                    itemText = item.name;
+                    slotDiv.classList.add('equipped'); // For equipped items
+                    if (slotType.startsWith('food')) icon = '🍎';
+                    else if (slotType.includes('weapon')) icon = '⚔️';
+                    else if (slotType.includes('head')) icon = '🎩';
+                    else if (slotType.includes('chest')) icon = '�';
+                    else if (slotType.includes('legs')) icon = '👖';
+                    else if (slotType.includes('arms')) icon = '🧤';
+                } else {
+                    itemText = slotType.charAt(0).toUpperCase() + slotType.slice(1).replace(/\d/g, ''); // e.g., 'Head', 'Weapon'
+                    if (slotType.startsWith('food')) icon = '❓'; // Placeholder for empty food slot
+                    else if (slotType.includes('weapon')) icon = '❓';
+                    else if (slotType.includes('head')) icon = '❓';
+                    else if (slotType.includes('chest')) icon = '❓';
+                    else if (slotType.includes('legs')) icon = '❓';
+                    else if (slotType.includes('arms')) icon = '❓';
+                }
+                slotDiv.innerHTML = `<span class="text-xs absolute top-1">${itemText}</span><span class="text-xl">${icon}</span>`;
+
+                // Handle click for item usage/equipping
+                slotDiv.onclick = () => handleItemClick(slotType);
+                inventoryGrid.appendChild(slotDiv);
+            });
+        }
+
+        function handleItemClick(slotType) {
+            const item = gameState.inventory[slotType];
+            if (!item) {
+                showModal("Inventaire", `L'emplacement "${slotType}" est vide.`);
+                return;
+            }
+
+            if (item.type === 'food') {
+                showModal("Utiliser la nourriture", `Voulez-vous consommer ${item.name} pour regagner des PV ?`, { confirm: true, cancel: true }).then(result => {
+                    if (result) consumeFood(slotType);
+                });
+            } else if (['weapon', 'armor', 'shield'].includes(item.type)) {
+                // Logic for equipping/unequipping
+                showModal("Équiper l'objet", `Voulez-vous équiper ${item.name} ? (Actuellement équipé dans l'emplacement ${slotType})`, { confirm: true, cancel: true }).then(result => {
+                    if (result) equipItem(item, slotType); // Pass item and its current slot
+                });
+            }
+            updateUI();
+        }
+
+        function equipItem(itemToEquip, fromSlot) {
+            // Find appropriate slot based on item type
+            let targetSlot = null;
+            if (itemToEquip.type === 'weapon') {
+                if (!gameState.inventory.weapon1) targetSlot = 'weapon1';
+                else if (!gameState.inventory.weapon2) targetSlot = 'weapon2';
+                else if (itemToEquip.stats.attack > (gameState.inventory.weapon1?.stats?.attack || 0)) targetSlot = 'weapon1'; // Replace weaker weapon
+                else if (itemToEquip.stats.attack > (gameState.inventory.weapon2?.stats?.attack || 0)) targetSlot = 'weapon2';
+            } else if (itemToEquip.type === 'armor') {
+                if (itemToEquip.slot === 'head' && !gameState.inventory.head) targetSlot = 'head';
+                else if (itemToEquip.slot === 'chest' && !gameState.inventory.chest) targetSlot = 'chest';
+                // ... similar for other armor types (legs, arms)
+            }
+            // Simplified for now: just put into the slot it came from, or an empty one if new
+            if (fromSlot && itemToEquip === gameState.inventory[fromSlot]) {
+                // It's already in its designated slot or was picked up directly into it
+                showModal("Équipé", `${itemToEquip.name} est déjà équipé.`);
+                return;
+            }
+
+            let equippedSuccessfully = false;
+            if (itemToEquip.type === 'weapon' && (targetSlot === 'weapon1' || targetSlot === 'weapon2')) {
+                if (gameState.inventory[targetSlot]) {
+                    // Unequip existing item first if slot is occupied
+                    removeStatsFromItem(gameState.inventory[targetSlot]);
+                }
+                gameState.inventory[targetSlot] = itemToEquip;
+                applyStatsFromItem(itemToEquip);
+                equippedSuccessfully = true;
+            } else if (itemToEquip.type === 'armor') {
+                 // Logic for specific armor slots
+                 if (itemToEquip.slot === 'head') targetSlot = 'head';
+                 else if (itemToEquip.slot === 'chest') targetSlot = 'chest';
+                 else if (itemToEquip.slot === 'legs') targetSlot = 'legs';
+                 else if (itemToEquip.slot === 'arms') targetSlot = 'arms';
+
+                 if (targetSlot) {
+                     if (gameState.inventory[targetSlot]) {
+                         removeStatsFromItem(gameState.inventory[targetSlot]);
+                     }
+                     gameState.inventory[targetSlot] = itemToEquip;
+                     applyStatsFromItem(itemToEquip);
+                     equippedSuccessfully = true;
+                 }
+            } else if (itemToEquip.type === 'shield') {
+                // Shield logic - might occupy weapon2 or a dedicated shield slot
+                // For simplicity, let's say it occupies weapon2 slot if weapon1 is free, or it replaces a weapon
+                if (!gameState.inventory.weapon2) targetSlot = 'weapon2'; // Use weapon2 slot for shield
+                else if (gameState.inventory.weapon2.type !== 'shield') { // Replace if it's not a shield
+                     removeStatsFromItem(gameState.inventory.weapon2);
+                     targetSlot = 'weapon2';
+                }
+                if (targetSlot) {
+                    gameState.inventory[targetSlot] = itemToEquip;
+                    applyStatsFromItem(itemToEquip);
+                    equippedSuccessfully = true;
+                }
+            }
+
+
+            if (equippedSuccessfully) {
+                showModal("Équipé", `${itemToEquip.name} a été équipé. Vos stats ont été mises à jour.`);
+            } else {
+                showModal("Échec de l'équipement", `Impossible d'équiper ${itemToEquip.name} pour le moment.`);
+            }
+            updateUI();
+        }
+
+        function consumeFood(slotType) {
+            const food = gameState.inventory[slotType];
+            if (food && food.type === 'food') {
+                const healthRestored = food.stats.hp;
+                gameState.hp = Math.min(gameState.maxHp, gameState.hp + healthRestored);
+                gameState.inventory[slotType] = null; // Remove consumed food
+                showModal("Nourriture consommée", `${food.name} consommé. Vous avez regagné ${healthRestored} PV.`, { ok: true });
+                updateUI();
+            }
+        }
+
+        function applyStatsFromItem(item) {
+            if (item.stats.hp) gameState.maxHp += item.stats.hp;
+            if (item.stats.attack) gameState.attack += item.stats.attack;
+            if (item.stats.agility) gameState.agility += item.stats.agility;
+        }
+
+        function removeStatsFromItem(item) {
+            if (item.stats.hp) gameState.maxHp -= item.stats.hp;
+            if (item.stats.attack) gameState.attack -= item.stats.attack;
+            if (item.stats.agility) gameState.agility -= item.stats.agility;
+            // Ensure HP doesn't exceed new max HP
+            if (gameState.hp > gameState.maxHp) gameState.hp = gameState.maxHp;
+        }
+
+        function generateInitialMap() {
+            gameState.currentMap = [];
+            for (let r = 0; r < 12; r++) {
+                const row = [];
+                for (let c = 0; c < 7; c++) {
+                    row.push(generateCellContent(r, c));
+                }
+                gameState.currentMap.push(row);
+            }
+            renderMap();
+        }
+
+        function generateCellContent(row, col) {
+            if (row === gameState.playerPosition.y && col === gameState.playerPosition.x) {
+                return { type: 'player', icon: '🤠' }; // Joueur
+            }
+            // Générer aléatoirement des ennemis, pièges ou événements
+            const rand = Math.random();
+            if (rand < 0.15) { // 15% chance for enemy
+                return { type: 'enemy', icon: '👹', name: 'Monstre', hp: 20, attack: 5 }; // Exemple d'ennemi
+            } else if (rand < 0.25) { // 10% chance for trap
+                return { type: 'trap', icon: '🚧', name: 'Piège à pointes' };
+            } else if (rand < 0.35) { // 10% chance for item
+                return { type: 'item', icon: '💰', item: generateRandomItem() };
+            }
+            return { type: 'empty', icon: '' }; // Cellule vide
+        }
+
+        function generateRandomItem() {
+            const itemTypes = ['weapon', 'armor', 'food', 'shield'];
+            const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            const value = Math.floor(Math.random() * 4) + 1; // +1 to +4
+            const commonNames = {
+                weapon: ["Épée rouillée", "Hache légère", "Dague pointue", "Bâton noueux"],
+                armor: ["Casque de fer", "Plastron de cuir", "Bottes usées", "Gantelets cloutés"],
+                food: ["Pomme", "Pain rassis", "Viande séchée", "Champignon étrange"],
+                shield: ["Petit bouclier", "Rondache en bois"]
+            };
+            const randomName = commonNames[randomType][Math.floor(Math.random() * commonNames[randomType].length)];
+
+            const item = {
+                name: randomName,
+                type: randomType,
+                stats: {}
+            };
+
+            if (randomType === 'weapon') item.stats.attack = value;
+            else if (randomType === 'armor') {
+                const armorSlots = ['head', 'chest', 'legs', 'arms'];
+                item.slot = armorSlots[Math.floor(Math.random() * armorSlots.length)];
+                item.stats.hp = value; // Armor gives HP
+            }
+            else if (randomType === 'food') item.stats.hp = value * 5; // Food gives more HP
+            else if (randomType === 'shield') item.stats.agility = value; // Shield gives agility
+
+            return item;
+        }
+
+        function renderMap() {
+            mapContainer.innerHTML = ''; // Clear previous map
+            mapContainer.style.transition = 'none'; // Disable transition for initial render/reset
+            mapContainer.style.transform = 'translateY(0)'; // Reset transform
+
+            for (let r = 0; r < 12; r++) {
+                for (let c = 0; c < 7; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'game-cell flex items-center justify-center rounded-sm';
+                    const cellContent = gameState.currentMap[r][c];
+
+                    // Appliquer des couleurs ou icônes spécifiques au mode
+                    if (cellContent.type === 'player') {
+                        cell.classList.add('player-cell');
+                        cell.textContent = cellContent.icon;
+                    } else if (cellContent.type === 'enemy') {
+                        cell.classList.add('enemy-cell');
+                        cell.textContent = cellContent.icon;
+                    } else if (cellContent.type === 'item') {
+                        cell.classList.add('item-cell');
+                        cell.textContent = cellContent.icon;
+                    } else if (cellContent.type === 'trap') {
+                        cell.classList.add('trap-cell');
+                        cell.textContent = cellContent.icon;
+                    } else {
+                        cell.classList.add('empty-cell');
+                        cell.textContent = cellContent.icon;
+                    }
+
+                    mapContainer.appendChild(cell);
+                }
+            }
+            // Re-enable transition after a brief delay
+            setTimeout(() => {
+                mapContainer.style.transition = 'transform 0.3s ease-out';
+            }, 50);
+        }
+
+        function movePlayer(direction) {
+            if (gameState.gamePhase !== 'map') return;
+
+            let newPlayerY = gameState.playerPosition.y;
+            if (direction === 'up') {
+                newPlayerY--;
+                gameState.cellsTraversed++;
+            } else if (direction === 'down') {
+                newPlayerY++;
+            }
+
+            if (newPlayerY < 0) { // Player tries to go beyond the top edge
+                // Generate a new row at the top and shift the map down
+                const newRow = [];
+                for (let c = 0; c < 7; c++) {
+                    newRow.push(generateCellContent(-1, c)); // -1 to indicate it's a new row, not for player position
+                }
+                gameState.currentMap.unshift(newRow); // Add new row to the beginning
+                gameState.currentMap.pop(); // Remove the last row
+
+                // Player's visual position stays at the same 'y' index
+                // but effectively moved up in the dungeon
+                newPlayerY = gameState.playerPosition.y; // Keep player visually in place (e.g., row 2)
+                mapContainer.style.transform = 'translateY(50px)'; // Move map down for smooth scroll effect
+                setTimeout(() => {
+                    renderMap();
+                    mapContainer.style.transition = 'none';
+                    mapContainer.style.transform = 'translateY(0)';
+                    // Re-enable transition after a brief delay
+                    setTimeout(() => {
+                        mapContainer.style.transition = 'transform 0.3s ease-out';
+                    }, 50);
+                }, 300); // Wait for the visual scroll to complete
+            } else if (newPlayerY >= 12) { // Player tries to go beyond the bottom edge
+                showModal("Impossible", "Vous ne pouvez pas reculer plus loin.");
+                return;
+            } else if (direction === 'down' && newPlayerY > gameState.playerPosition.y) {
+                 // When moving down, cells disappear from bottom, map doesn't scroll up
+                 // Just move the player's position if within bounds
+                 gameState.playerPosition.y = newPlayerY;
+                 updateCellContent(gameState.playerPosition.y - 1, gameState.playerPosition.x, { type: 'empty', icon: '' }); // Clear old player cell
+            } else {
+                // Normal move within the current map view
+                // Clear old player position
+                updateCellContent(gameState.playerPosition.y, gameState.playerPosition.x, { type: 'empty', icon: '' });
+                gameState.playerPosition.y = newPlayerY;
+            }
+
+            // Update player position on the map
+            updateCellContent(gameState.playerPosition.y, gameState.playerPosition.x, { type: 'player', icon: '🤠' });
+
+            // Trigger event if any
+            const cellUnderPlayer = gameState.currentMap[gameState.playerPosition.y][gameState.playerPosition.x];
+            if (cellUnderPlayer.type !== 'empty' && cellUnderPlayer.type !== 'player') {
+                triggerCellEvent(cellUnderPlayer);
+            }
+            renderMap();
+            updateDifficulty();
+            updateUI();
+        }
+
+        function updateCellContent(row, col, newContent) {
+            if (row >= 0 && row < 12 && col >= 0 && col < 7) {
+                gameState.currentMap[row][col] = newContent;
+            }
+        }
+
+        async function triggerCellEvent(cellContent) {
+            gameState.gamePhase = 'event';
+            gameState.currentEvent = cellContent; // Store the event details
+
+            let eventDescription;
+            if (cellContent.type === 'enemy') {
+                eventDescription = await generateEvent('ennemi', gameState.difficulty, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory);
+            } else if (cellContent.type === 'trap') {
+                eventDescription = await generateEvent('piège', gameState.difficulty, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory);
+            } else if (cellContent.type === 'item') {
+                eventDescription = `Vous trouvez un objet : ${cellContent.item.name} (${cellContent.item.type}). Voulez-vous le ramasser ?`;
+                showEventUI(eventDescription);
+                eventOptions.innerHTML = `
+                    <button class="p-2 rounded-lg" data-action="ramasser">Ramasser</button>
+                    <button class="p-2 rounded-lg" data-action="ignorer">Ignorer</button>
+                `;
+                return;
+            } else { // Contextual event or unknown
+                eventDescription = await generateEvent('événement contextuel', gameState.difficulty, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory);
+            }
+
+            showEventUI(eventDescription);
+        }
+
+        async function handleSubmitAction() {
+            const playerAction = playerActionInput.value.trim();
+            if (!playerAction) {
+                showModal("Action requise", "Veuillez entrer une action.");
+                return;
+            }
+
+            playerActionInput.value = ''; // Clear input field
+
+            const response = await resolvePlayerAction(playerAction, gameState.currentEvent, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory, gameState.difficulty);
+
+            // Gérer les conséquences de l'action selon la réponse de l'IA
+            const lines = response.split('\n');
+            let message = '';
+            let eventResolved = false;
+
+            for (const line of lines) {
+                if (line.startsWith("DEGATS:")) {
+                    const damage = parseInt(line.split(":")[1].trim());
+                    gameState.hp -= damage;
+                    message += `Vous subissez ${damage} dégâts ! `;
+                } else if (line.startsWith("SOIN:")) {
+                    const heal = parseInt(line.split(":")[1].trim());
+                    gameState.hp = Math.min(gameState.maxHp, gameState.hp + heal);
+                    message += `Vous regagnez ${heal} PV. `;
+                } else if (line.startsWith("GAIN_OBJET:")) {
+                    const parts = line.split(":");
+                    const itemDetails = parts[1].split(",");
+                    const type = itemDetails[0].trim();
+                    const name = itemDetails[1].trim();
+                    const stat = itemDetails[2].trim();
+                    const value = parseInt(itemDetails[3].trim());
+                    const newItem = { name, type, stats: { [stat]: value } };
+
+                    let addedToInventory = false;
+                    if (type === 'food') {
+                        if (!gameState.inventory.food1) { gameState.inventory.food1 = newItem; addedToInventory = true; }
+                        else if (!gameState.inventory.food2) { gameState.inventory.food2 = newItem; addedToInventory = true; }
+                    } else if (type === 'weapon') {
+                        if (!gameState.inventory.weapon1) { gameState.inventory.weapon1 = newItem; addedToInventory = true; }
+                        else if (!gameState.inventory.weapon2) { gameState.inventory.weapon2 = newItem; addedToInventory = true; }
+                        else {
+                            // If both weapon slots are full, allow player to choose to swap
+                            // For simplicity now, just add to weapon1 if it's better
+                            if (newItem.stats.attack > (gameState.inventory.weapon1?.stats?.attack || 0)) {
+                                removeStatsFromItem(gameState.inventory.weapon1);
+                                gameState.inventory.weapon1 = newItem;
+                                applyStatsFromItem(newItem);
+                                addedToInventory = true;
+                            } else if (newItem.stats.attack > (gameState.inventory.weapon2?.stats?.attack || 0)) {
+                                removeStatsFromItem(gameState.inventory.weapon2);
+                                gameState.inventory.weapon2 = newItem;
+                                applyStatsFromItem(newItem);
+                                addedToInventory = true;
+                            }
+                        }
+                    } else if (type === 'armor') {
+                        const slotMap = { head: 'head', chest: 'chest', legs: 'legs', arms: 'arms' };
+                        const targetSlot = slotMap[itemDetails[itemDetails.length - 1].trim()]; // Last part is slot for armor
+                        if (targetSlot && !gameState.inventory[targetSlot]) {
+                            gameState.inventory[targetSlot] = newItem;
+                            addedToInventory = true;
+                        } else if (targetSlot && newItem.stats.hp > (gameState.inventory[targetSlot]?.stats?.hp || 0)) {
+                             removeStatsFromItem(gameState.inventory[targetSlot]);
+                             gameState.inventory[targetSlot] = newItem;
+                             applyStatsFromItem(newItem);
+                             addedToInventory = true;
+                        }
+                    } else if (type === 'shield') {
+                        if (!gameState.inventory.weapon2) { // Shields can go in weapon2 slot
+                            gameState.inventory.weapon2 = newItem;
+                            addedToInventory = true;
+                        } else if (gameState.inventory.weapon2.type !== 'shield' || newItem.stats.agility > (gameState.inventory.weapon2?.stats?.agility || 0)) {
+                            removeStatsFromItem(gameState.inventory.weapon2);
+                            gameState.inventory.weapon2 = newItem;
+                            applyStatsFromItem(newItem);
+                            addedToInventory = true;
+                        }
+                    }
+
+                    if (addedToInventory) {
+                        message += `Vous avez trouvé et ramassé : ${newItem.name} ! `;
+                        applyStatsFromItem(newItem); // Apply stats immediately for new items
+                    } else {
+                        message += `Vous avez trouvé : ${newItem.name}, mais votre inventaire est plein ou l'objet n'est pas meilleur. `;
+                    }
+                } else if (line.startsWith("STATS_MODIFIEES:")) {
+                    const parts = line.split(":");
+                    const statDetails = parts[1].split(",");
+                    const statName = statDetails[0].trim();
+                    const statValue = parseInt(statDetails[1].trim());
+                    if (statName === 'hp') gameState.maxHp += statValue;
+                    else if (statName === 'attack') gameState.attack += statValue;
+                    else if (statName === 'agility') gameState.agility += statValue;
+                    message += `Vos ${statName} sont modifiées de ${statValue}. `;
+                } else if (line.startsWith("FIN_PARTIE:")) {
+                    gameOver(line.split(":")[1].trim());
+                    return; // Stop processing further
+                } else if (line.startsWith("FIN_EVENEMENT")) {
+                    eventResolved = true;
+                    gameState.eventsSurvived++;
+                    message += "L'événement est terminé. ";
+                } else if (line.startsWith("DEBUT_COMBAT:")) {
+                    const parts = line.split(":");
+                    const enemyInfo = parts[1].split(",");
+                    gameState.currentEvent = { type: 'enemy', name: enemyInfo[0].trim(), hp: parseInt(enemyInfo[1].trim().replace('PV', '')) };
+                    message += `Un combat commence avec ${gameState.currentEvent.name} (PV: ${gameState.currentEvent.hp}). `;
+                } else if (line.startsWith("CONTINUE_COMBAT:")) {
+                    const parts = line.split(", PV Ennemi:");
+                    message += `${parts[0].replace("CONTINUE_COMBAT:", "").trim()}. `;
+                    const enemyHp = parseInt(parts[1].trim());
+                    gameState.currentEvent.hp = enemyHp; // Update enemy HP
+                    if (enemyHp <= 0) {
+                        message += `L'ennemi ${gameState.currentEvent.name} est vaincu ! `;
+                        eventResolved = true; // Combat ends on victory
+                        gameState.eventsSurvived++;
+                    }
+                } else if (line.startsWith("VICTOIRE_COMBAT:")) {
+                    message += `${line.replace("VICTOIRE_COMBAT:", "").trim()}. L'ennemi est vaincu ! `;
+                    eventResolved = true;
+                } else if (line.startsWith("FUITE_REUSSIE:")) {
+                    message += `${line.replace("FUITE_REUSSIE:", "").trim()}. Vous vous échappez ! `;
+                    eventResolved = true;
+                } else if (line.startsWith("INGENIOSITE_RECOMPENSE:")) {
+                    message += `🌟 ${line.replace("INGENIOSITE_RECOMPENSE:", "").trim()} 🌟 `;
+                } else if (line.startsWith("DIFFICULTE_MODIFIEE:")) {
+                    const newDifficulty = parseInt(line.split(":")[1].trim());
+                    gameState.difficulty = Math.max(0, Math.min(25, newDifficulty)); // Clamp between 0 and 25
+                    message += `La difficulté du combat a été ajustée à ${gameState.difficulty}%. `;
+                }
+                else {
+                    message += line.trim() + " "; // Add any narrative text
+                }
+            }
+
+            eventText.innerHTML = message.replace(/\n/g, '<br>');
+            updateUI(); // Update UI after stat changes
+            checkHp(); // Check player HP after damage/heal
+
+            if (eventResolved) {
+                showModal("Événement Résolu", message, { ok: true }).then(() => {
+                    hideEventUI();
+                    gameState.gamePhase = 'map';
+                    // Clear the cell where the event was
+                    updateCellContent(gameState.playerPosition.y, gameState.playerPosition.x, { type: 'empty', icon: '' });
+                    renderMap();
+                });
+            }
+        }
+
+        function checkHp() {
+            if (gameState.hp <= 0) {
+                gameState.hp = 0; // Ensure HP doesn't go negative on display
+                gameOver("Vos points de vie sont tombés à zéro. Vous avez succombé aux dangers du donjon.");
+            }
+        }
+
+        function gameOver(reason) {
+            gameState.gamePhase = 'gameover';
+            showModal("Game Over", reason + `\n\nVous avez parcouru ${gameState.cellsTraversed} cases et survécu à ${gameState.eventsSurvived} événements. Votre score final est de ${gameState.cellsTraversed + gameState.eventsSurvived}.`, { ok: true }).then(() => {
+                saveScore(); // Tries to save score if it's a high score
+                showMainMenu(); // Return to main menu
+            });
+        }
+
+        function updateDifficulty() {
+            // Difficulté augmente avec le nombre de cases parcourues et événements survécus
+            // Maximum de 25%
+            const baseDifficulty = (gameState.cellsTraversed * 0.05) + (gameState.eventsSurvived * 0.5);
+            gameState.difficulty = Math.min(25, Math.round(baseDifficulty));
+            console.log("Difficulté actuelle:", gameState.difficulty + "%");
+        }
+
+        // --- Listeners d'événements ---
+        goreModeBtn.addEventListener('click', () => {
+            gameState.mode = 'gore';
+            applyTheme('gore');
+            // Remove selection from friendly
+            friendlyModeBtn.classList.remove('border-4', 'border-current');
+            goreModeBtn.classList.add('border-4', 'border-current');
+        });
+
+        friendlyModeBtn.addEventListener('click', () => {
+            gameState.mode = 'friendly';
+            applyTheme('friendly');
+            // Remove selection from gore
+            goreModeBtn.classList.remove('border-4', 'border-current');
+            friendlyModeBtn.classList.add('border-4', 'border-current');
+        });
+
+        // Initialize theme based on localStorage or default to gore
+        const savedMode = localStorage.getItem('generativusMode');
+        if (savedMode) {
+            gameState.mode = savedMode;
+            applyTheme(savedMode);
+            if (savedMode === 'gore') {
+                goreModeBtn.classList.add('border-4', 'border-current');
+            } else {
+                friendlyModeBtn.classList.add('border-4', 'border-current');
+            }
+        } else {
+            // Default to Gore mode if no saved mode
+            gameState.mode = 'gore';
+            goreModeBtn.classList.add('border-4', 'border-current');
+        }
+
+
+        // Start Game Button Logic (after mode selection)
+        playerNameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                startGame();
+            }
+        });
+        goreModeBtn.addEventListener('click', () => {
+            gameState.mode = 'gore';
+            applyTheme('gore');
+            startGame();
+        });
+        friendlyModeBtn.addEventListener('click', () => {
+            gameState.mode = 'friendly';
+            applyTheme('friendly');
+            startGame();
+        });
+
+
+        // Game UI Button Listeners
+        moveUpBtn.addEventListener('click', () => movePlayer('up'));
+        moveDownBtn.addEventListener('click', () => movePlayer('down'));
+        submitActionButton.addEventListener('click', handleSubmitAction);
+        playerActionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleSubmitAction();
+            }
+        });
+
+        eventOptions.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                playerActionInput.value = e.target.dataset.action;
+                handleSubmitAction();
+            }
+        });
+
+        returnToMenuBtn.addEventListener('click', () => {
+            showModal("Retour au Menu", "Voulez-vous vraiment retourner au menu principal ? Votre progression actuelle sera perdue.", { confirm: true, cancel: true }).then(result => {
+                if (result) {
+                    showMainMenu();
+                }
+            });
+        });
+
+        // Initialisation de Firebase une fois que le DOM est chargé
+        window.onload = initializeFirebase;
+    </script>
+</body>
+</html>
+�
