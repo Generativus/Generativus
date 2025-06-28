@@ -350,13 +350,30 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, query, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variables globales Firebase (injectées par l'environnement Canvas)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // ==============================================================================
+        // CONFIGURATION FIREBASE POUR DÉPLOIEMENT HORS CANVAS (ex: GitHub Pages)
+        // Si vous déployez sur GitHub Pages, vous devrez remplir ces informations.
+        // 1. Allez sur votre projet Firebase (console.firebase.google.com).
+        // 2. Cliquez sur "Paramètres du projet" (l'engrenage à côté de "Présentation du projet").
+        // 3. Dans l'onglet "Général", faites défiler jusqu'à "Vos applications" et choisissez votre application web.
+        // 4. Copiez l'objet "firebaseConfig".
+        // 5. Remplacez le contenu de `YOUR_FIREBASE_CONFIG_HERE` ci-dessous.
+        // Laissez GEMINI_TEXT_API_KEY et GEMINI_IMAGE_API_KEY vides, Canvas les injecte automatiquement.
+        // ==============================================================================
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // 'default-app-id' si non en Canvas
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            // REMPLACEZ CE BLOC PAR VOTRE PROPRE OBJET firebaseConfig DEPUIS LA CONSOLE FIREBASE
+            apiKey: "AIzaSyDuEm2htptr7pY_EnFoEJPmUOYhKzYC9pE",
+            authDomain: "generativus-b65cb.firebaseapp.com",
+            projectId: "generativus-b65cb",
+            storageBucket: "generativus-b65cb.firebasestorage.app",
+            appId: "1:853953342399:web:433b07d4396a136a60cf0a",
+            messagingSenderId: "853953342399",
+            measurementId: "G-KE0ZEXWBPR"
+        };
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Configuration de l'API Gemini
-        // IMPORTANT : Ces clés API sont des placeholders. En production, elles doivent être sécurisées.
         const GEMINI_TEXT_API_KEY = ""; // Laisser vide pour que Canvas l'injecte
         const GEMINI_IMAGE_API_KEY = ""; // Laisser vide pour que Canvas l'injecte
 
@@ -439,6 +456,18 @@
          */
         async function initializeFirebase() {
             try {
+                // Vérifier si une configuration Firebase valide est présente
+                if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                    console.warn("Firebase configuration manquante ou par défaut. Les fonctionnalités Firestore et Auth ne seront pas disponibles en dehors de l'environnement Canvas.");
+                    showCustomModal("Configuration Firebase", "La configuration Firebase n'est pas complète. Les classements ne seront pas sauvegardés ni affichés en dehors de l'environnement Canvas. Veuillez consulter le code pour ajouter votre configuration.");
+                    authReady = true; // Permettre au jeu de continuer sans Firebase
+                    userId = crypto.randomUUID(); // Utiliser un ID aléatoire comme fallback
+                    if (!gameStarted) {
+                        showMainMenu();
+                    }
+                    return;
+                }
+
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -461,7 +490,7 @@
                             }
                         } catch (error) {
                             console.error("Firebase Auth Error:", error);
-                            showCustomModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Certaines fonctionnalités pourraient être limitées.");
+                            showCustomModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Certaines fonctionnalités (classements) pourraient être limitées.");
                             userId = crypto.randomUUID(); // Fallback for userId
                             console.warn("Using a random UUID for userId as fallback:", userId);
                         }
@@ -473,7 +502,7 @@
                 });
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de Firebase:", error);
-                showCustomModal("Erreur Firebase", "Impossible d'initialiser Firebase. Vérifiez la configuration.");
+                showCustomModal("Erreur Firebase", "Impossible d'initialiser Firebase. Vérifiez la configuration. Les classements ne seront pas sauvegardés.");
                 userId = crypto.randomUUID(); // Fallback for userId
                 console.warn("Using a random UUID for userId as fallback:", userId);
                 authReady = true; // Permettre au jeu de continuer même si Firebase a échoué
