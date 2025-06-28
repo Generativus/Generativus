@@ -4,288 +4,272 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generativus</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@404&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Styles de base pour le jeu */
+        /* Styles généraux */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a202c; /* Couleur de fond sombre par défaut */
-            color: #e2e8f0; /* Couleur de texte claire par défaut */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000; /* Par défaut pour le mode Gore */
+            color: #fff; /* Par défaut pour le mode Gore */
             margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             overflow: hidden; /* Empêche le défilement */
         }
 
-        /* Styles spécifiques pour le mode Gore */
-        body.mode-gore {
-            background-color: #000000;
-            color: #ffffff;
-        }
-        .mode-gore .game-container, .mode-gore .menu-container {
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 10px #ffffff;
-            background-color: #000000;
-        }
-        .mode-gore .game-cell, .mode-gore .map-container {
-             border: 1px solid #ffffff; /* Cells and map border */
-        }
-        .mode-gore .player-cell {
-            background-color: #ffffff;
-        }
-        .mode-gore .enemy-cell {
-            background-color: #ff0000; /* Red for enemies in Gore mode */
-        }
-        .mode-gore .item-cell {
-            background-color: #00ff00; /* Green for items in Gore mode */
-        }
-        .mode-gore button {
-            background-color: #333333;
-            color: #ffffff;
-            border: 1px solid #ffffff;
-            box-shadow: 2px 2px 0 #ffffff;
-        }
-        .mode-gore button:hover {
-            background-color: #555555;
-            box-shadow: 4px 4px 0 #ffffff;
-        }
-        .mode-gore input[type="text"] {
-            border: 1px solid #ffffff;
-            background-color: #333333;
-            color: #ffffff;
-        }
-        .mode-gore .modal-content {
-            background-color: #000000;
-            border: 2px solid #ffffff;
-            color: #ffffff;
-        }
-        .mode-gore .score-list li {
-            border-bottom: 1px dashed #ffffff;
-        }
-        .mode-gore .loading-spinner {
-            border-top-color: #fff;
-            border-right-color: #fff;
+        /* Mode Amical */
+        body.friendly-mode {
+            background-color: #ff69b4; /* Rose vif */
+            color: #fff;
         }
 
-
-        /* Styles spécifiques pour le mode Amical */
-        body.mode-friendly {
-            background-color: #f7e1e6; /* Rose clair */
-            color: #333333;
-        }
-        .mode-friendly .game-container, .mode-friendly .menu-container {
-            border: 2px solid #f06292; /* Rose vif */
-            box-shadow: 0 0 10px #f06292;
-            background-color: #ffebee; /* Rose très clair */
-        }
-        .mode-friendly .game-cell, .mode-friendly .map-container {
-            border: 1px solid #ffab91; /* Orange clair for cells and map border */
-        }
-        .mode-friendly .player-cell {
-            background-color: #ffccbc; /* Orange pastel */
-        }
-        .mode-friendly .enemy-cell {
-            background-color: #ef9a9a; /* Rouge doux */
-        }
-        .mode-friendly .item-cell {
-            background-color: #a5d6a7; /* Vert doux */
-        }
-        .mode-friendly button {
-            background-color: #f06292;
-            color: #ffffff;
-            border: 1px solid #c2185b;
-            box-shadow: 2px 2px 0 #c2185b;
-        }
-        .mode-friendly button:hover {
-            background-color: #e91e63;
-            box-shadow: 4px 4px 0 #c2185b;
-        }
-        .mode-friendly input[type="text"] {
-            border: 1px solid #c2185b;
-            background-color: #ffcdd2;
-            color: #333333;
-        }
-        .mode-friendly .modal-content {
-            background-color: #ffebee;
-            border: 2px solid #f06292;
-            color: #333333;
-        }
-        .mode-friendly .score-list li {
-            border-bottom: 1px dashed #f06292;
-        }
-        .mode-friendly .loading-spinner {
-            border-top-color: #f06292;
-            border-right-color: #f06292;
-        }
-
-
-        /* Styles généraux pour le conteneur du jeu et du menu */
-        .game-container, .menu-container {
+        /* Conteneur principal pour le jeu */
+        #game-container {
             display: flex;
-            border-radius: 12px;
-            padding: 20px;
-            max-width: 1200px;
-            width: 95%;
+            flex-direction: column;
+            width: 100%;
+            max-width: 600px; /* Max width for larger screens */
+            margin: auto;
+            flex-grow: 1; /* Permet au conteneur de prendre l'espace disponible */
+            padding: 10px;
             box-sizing: border-box;
-            transition: all 0.5s ease-in-out;
         }
 
-        /* Styles spécifiques au menu */
-        .menu-container {
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            text-align: center;
-        }
-
-        /* Styles spécifiques au jeu */
-        .game-area {
-            flex: 3; /* Prend plus d'espace */
+        /* Section des statistiques */
+        #stats {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding-right: 20px;
+            justify-content: space-around;
+            padding: 5px 0;
+            font-size: 0.8em;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Séparateur subtil */
+            margin-bottom: 10px;
         }
 
-        .map-container {
-            display: grid;
-            grid-template-columns: repeat(7, 50px); /* 7 colonnes, 50px de large */
-            grid-template-rows: repeat(12, 50px); /* 12 lignes, 50px de haut */
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative; /* Pour le positionnement des cellules */
-        }
-
-        .game-cell {
-            width: 50px;
-            height: 50px;
+        /* Zone de l'image - MÀJ pour 16:9 */
+        #game-image-container {
+            width: 100%;
+            padding-bottom: 56.25%; /* Pour un ratio 16:9 (height is 9/16 of width) */
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.5); /* Placeholder background */
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.5em;
-            transition: background-color 0.2s ease;
+            border-radius: 8px; /* Coins arrondis */
+            overflow: hidden;
+            margin-bottom: 10px;
         }
 
-        .player-cell {
-            font-size: 2em; /* Bigger icon for player */
-        }
-
-        .event-box {
+        #game-image {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 600px; /* Taille similaire à la carte */
-            padding: 20px;
-            border-radius: 8px;
-            overflow-y: auto;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-start;
+            height: 100%;
+            object-fit: contain; /* Assure que l'image s'adapte sans être coupée */
+            image-rendering: pixelated; /* Pour un rendu pixel art net */
         }
 
-        .sidebar {
-            flex: 1; /* Prend moins d'espace */
-            padding-left: 20px;
-            border-left: 1px solid currentColor; /* Couleur du texte du mode */
+        /* Indicateur de chargement pour l'image */
+        #image-loading-indicator {
+            position: absolute;
+            color: #fff;
+            font-size: 1.2em;
+            display: none; /* Masqué par défaut */
+        }
+
+        /* Zone de texte principale */
+        #main-text {
+            flex-grow: 1; /* Prend l'espace restant */
+            padding: 10px 0;
+            font-size: 0.9em;
+            line-height: 1.6;
+            overflow-y: auto; /* Permet le défilement si le texte est trop long */
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+        /* Style pour les messages du joueur dans le texte principal */
+        .player-message {
+            color: #88ee88; /* Couleur différente pour les messages du joueur */
+            font-style: italic;
+        }
+
+
+        /* Zone de saisie du joueur */
+        #input-area {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        #player-input {
+            flex-grow: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8em;
+            border-radius: 5px;
+            outline: none;
+            margin-right: 10px;
+        }
+
+        #player-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #send-button {
+            background-color: #4CAF50; /* Vert */
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.8em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #send-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Overlays for alerts and leaderboards */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .overlay-content {
+            background-color: #333;
+            border: 2px solid #555;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        .inventory-slot {
-            width: 50px;
-            height: 50px;
-            border: 1px solid currentColor;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 1.2em;
-            overflow: hidden; /* Ensure content stays within */
+        .overlay-content h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #fff;
         }
 
-        .inventory-slot.equipped {
-            border: 2px solid #38a169; /* Green border for equipped items */
+        .overlay-content p {
+            font-size: 1em;
+            margin-bottom: 15px;
+            color: #ccc;
         }
 
-        .inventory-slot:hover {
-            opacity: 0.8;
-        }
-
-        button {
+        .overlay-content button {
+            background-color: #007bff;
+            color: white;
+            border: none;
             padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        button:active {
-            transform: translateY(2px);
-            box-shadow: 0 0 0;
-        }
-
-        input[type="text"] {
-            padding: 10px;
-            border-radius: 8px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .player-hp-bar {
-            background-color: #e0e0e0;
             border-radius: 5px;
-            overflow: hidden;
-            height: 20px;
-            width: 100%;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9em;
         }
 
-        .player-hp-fill {
-            background-color: #4CAF50;
-            height: 100%;
-            transition: width 0.3s ease-in-out;
+        .overlay-content button:hover {
+            background-color: #0056b3;
         }
 
-        /* Modal styles */
-        .modal {
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
+        /* Leaderboard specific styles */
+        #leaderboards-display {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-sizing: border-box;
+            width: 100%;
+            text-align: left; /* Align text within leaderboard sections */
         }
 
-        .loading-spinner {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
+        .leaderboard-section {
+            background-color: #222;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .leaderboard-section h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #0f0; /* Green for section titles */
+            text-align: center;
+        }
+
+        .leaderboard-section ol {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .leaderboard-section li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #444;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+
+        .leaderboard-section li:last-child {
+            border-bottom: none;
+        }
+        .score-value {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5em;
+            z-index: 2000;
+        }
+
+        #loading-overlay p {
+            margin-top: 10px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
             border-radius: 50%;
             width: 40px;
             height: 40px;
-            animation: spin 2s linear infinite;
-            margin: 20px auto;
+            animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
@@ -294,1180 +278,709 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .game-container {
-                flex-direction: column;
-                padding: 10px;
+        @media (max-width: 480px) {
+            body {
+                font-size: 14px;
             }
-            .sidebar {
-                border-left: none;
-                border-top: 1px solid currentColor;
-                padding-left: 0;
-                padding-top: 20px;
+            #stats {
+                font-size: 0.7em;
             }
-            .map-container {
-                grid-template-columns: repeat(7, 40px); /* Smaller cells on mobile */
-                grid-template-rows: repeat(12, 40px);
+            #player-input, #send-button {
+                font-size: 0.7em;
+                padding: 7px 10px;
             }
-            .game-cell {
-                width: 40px;
-                height: 40px;
+            .overlay-content h2 {
+                font-size: 1.2em;
             }
-            .inventory-grid {
-                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-            }
-            .inventory-slot {
-                width: 40px;
-                height: 40px;
+            .overlay-content p {
+                font-size: 0.9em;
             }
         }
     </style>
 </head>
-<body class="mode-gore">
-    <!-- Main Menu -->
-    <div id="mainMenu" class="menu-container hidden">
-        <h1 class="text-5xl font-bold mb-6">Generativus</h1>
-        <div class="w-full max-w-sm flex flex-col gap-4">
-            <input type="text" id="playerNameInput" placeholder="Nom de Personnage" class="p-3 rounded-lg text-lg text-center"/>
-            <div class="flex justify-around gap-4">
-                <button id="goreModeBtn" class="flex-1 p-3 rounded-lg text-xl font-semibold shadow-md">Mode Gore</button>
-                <button id="friendlyModeBtn" class="flex-1 p-3 rounded-lg text-xl font-semibold shadow-md">Mode Amical</button>
-            </div>
+<body>
+    <!-- Overlay de chargement -->
+    <div id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Génération en cours...</p>
+    </div>
+
+    <div id="game-container">
+        <!-- Statistiques du joueur -->
+        <div id="stats">
+            <span id="player-att">ATT: -</span>
+            <span id="player-hp">VIE: -</span>
+            <span id="player-agi">AGI: -</span>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl mt-8">
-            <div class="flex-1 p-6 rounded-lg border-2">
-                <h2 class="text-3xl font-bold mb-4">Classement - Mode Gore</h2>
-                <ul id="goreLeaderboard" class="score-list text-left text-lg">
-                    <!-- Scores will be loaded here -->
-                    <li>Chargement...</li>
-                </ul>
-            </div>
-            <div class="flex-1 p-6 rounded-lg border-2">
-                <h2 class="text-3xl font-bold mb-4">Classement - Mode Amical</h2>
-                <ul id="friendlyLeaderboard" class="score-list text-left text-lg">
-                    <!-- Scores will be loaded here -->
-                    <li>Chargement...</li>
-                </ul>
-            </div>
+        <!-- Zone de l'image de jeu -->
+        <div id="game-image-container">
+            <img id="game-image" src="" alt="Image de jeu">
+            <div id="image-loading-indicator">Chargement de l'image...</div>
+        </div>
+
+        <!-- Zone de texte principale de l'IA -->
+        <div id="main-text">
+            Bienvenue dans Generativus ! Un monde créé par l'IA.<br>
+            Entrez votre nom et choisissez votre mode de jeu (Mode Gore ou Mode Amical) pour commencer.
+        </div>
+
+        <!-- Zone de saisie du joueur -->
+        <div id="input-area">
+            <input type="text" id="player-input" placeholder="Votre action ici...">
+            <button id="send-button">Envoyer</button>
         </div>
     </div>
 
-    <!-- Game UI -->
-    <div id="gameUI" class="game-container hidden">
-        <div class="game-area flex flex-col items-center">
-            <div id="mapContainer" class="map-container hidden">
-                <!-- Map cells will be generated here -->
+    <!-- Modale personnalisée pour les messages et les classements -->
+    <div id="custom-modal" class="overlay" style="display: none;">
+        <div class="overlay-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-message"></p>
+            <div id="leaderboards-display" style="display: none;">
+                <!-- Les classements seront injectés ici -->
             </div>
-            <div id="eventBox" class="event-box hidden">
-                <p id="eventText" class="text-xl"></p>
-                <div id="eventOptions" class="flex flex-wrap gap-2 mt-4"></div>
-                <input type="text" id="playerActionInput" placeholder="Votre action..." class="w-full p-2 mt-4 rounded-lg"/>
-                <button id="submitActionButton" class="mt-4 p-3 rounded-lg text-lg font-semibold w-full">Soumettre l'action</button>
-            </div>
-            <div class="flex justify-center gap-4 mt-4 w-full">
-                <button id="moveUpBtn" class="p-3 rounded-lg text-xl font-semibold">&uarr; Avancer</button>
-                <button id="moveDownBtn" class="p-3 rounded-lg text-xl font-semibold">&darr; Reculer</button>
-            </div>
+            <button id="modal-close-button">Fermer</button>
         </div>
-
-        <div class="sidebar flex flex-col items-start gap-5 p-5 rounded-lg">
-            <h2 class="text-3xl font-bold mb-4" id="playerDisplayName">Nom du Joueur</h2>
-            <div class="w-full">
-                <h3 class="text-xl font-semibold">Vie: <span id="playerHp">100/100</span></h3>
-                <div class="player-hp-bar">
-                    <div id="playerHpFill" class="player-hp-fill" style="width: 100%;"></div>
-                </div>
-            </div>
-            <h3 class="text-xl font-semibold">Attaque: <span id="playerAttack">1</span></h3>
-            <h3 class="text-xl font-semibold">Agilité: <span id="playerAgility">1</span></h3>
-
-            <h3 class="text-xl font-semibold mt-4">Inventaire</h3>
-            <p class="text-sm">Cliquez pour utiliser/équiper</p>
-            <div class="inventory-grid grid grid-cols-4 gap-2 w-full">
-                <div class="inventory-slot" data-slot="head">Casque</div>
-                <div class="inventory-slot" data-slot="chest">Plastron</div>
-                <div class="inventory-slot" data-slot="legs">Jambières</div>
-                <div class="inventory-slot" data-slot="arms">Brassards</div>
-                <div class="inventory-slot" data-slot="weapon1">Arme 1</div>
-                <div class="inventory-slot" data-slot="weapon2">Arme 2</div>
-                <div class="inventory-slot" data-slot="food1">Nourriture 1</div>
-                <div class="inventory-slot" data-slot="food2">Nourriture 2</div>
-            </div>
-            <button id="returnToMenuBtn" class="mt-auto p-3 rounded-lg text-lg font-semibold w-full">Retour au Menu</button>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal" class="modal hidden">
-        <div id="modalContent" class="modal-content">
-            <h2 id="modalTitle" class="text-3xl font-bold"></h2>
-            <p id="modalMessage" class="text-xl"></p>
-            <div class="flex justify-center gap-4">
-                <button id="modalConfirmBtn" class="p-3 rounded-lg text-lg font-semibold hidden">Confirmer</button>
-                <button id="modalCancelBtn" class="p-3 rounded-lg text-lg font-semibold hidden">Annuler</button>
-                <button id="modalOkBtn" class="p-3 rounded-lg text-lg font-semibold hidden">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div id="loadingOverlay" class="modal hidden">
-        <div class="loading-spinner"></div>
     </div>
 
     <script type="module">
-        // Import des modules Firebase
+        // Importations Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous et la ligne correspondante dans initializeFirebase()
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Variables globales Firebase (injectées par l'environnement Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Variables globales pour l'application Firebase et l'utilisateur
-        let app;
-        let db;
-        let auth;
-        let userId;
-        let isAuthReady = false;
+        // Configuration de l'API Gemini
+        // IMPORTANT : Ces clés API sont des placeholders. En production, elles doivent être sécurisées.
+        const GEMINI_TEXT_API_KEY = ""; // Laisser vide pour que Canvas l'injecte
+        const GEMINI_IMAGE_API_KEY = ""; // Laisser vide pour que Canvas l'injecte
 
-        // Configuration Firebase (fournie par l'utilisateur)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuEm2htptr7pY_EnFoEJPmUOYhKzYC9pE",
-            authDomain: "generativus-b65cb.firebaseapp.com",
-            projectId: "generativus-b65cb",
-            storageBucket: "generativus-b65cb.firebasestorage.app",
-            messagingSenderId: "853953342399",
-            appId: "1:853953342399:web:433b07d4396a136a60cf0a",
-            measurementId: "G-KE0ZEXWBPR"
+        // Variables globales du jeu
+        let player = {
+            name: '',
+            att: 5, // Attaque
+            vie: 20, // Points de vie actuels
+            maxVie: 20, // Points de vie maximum
+            agi: 1, // Agilité
+            inventory: [], // Géré textuellement par l'IA, mais on peut garder une trace simple pour l'IA
+            score: 0,
+            mode: '' // 'Gore' ou 'Amical'
         };
 
-        // Récupération de l'ID de l'application (pour Firebase Firestore paths)
-        // Utilise le projectId de firebaseConfig pour assurer la compatibilité
-        const appId = firebaseConfig.projectId;
-
-        // La clé API Gemini est injectée par l'environnement Canvas.
-        // Laisser vide ici.
-        const GEMINI_API_KEY = "";
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-        // État du jeu
-        let gameState = {
-            playerName: '',
-            mode: '', // 'gore' ou 'friendly'
-            hp: 100,
-            maxHp: 100,
-            attack: 1,
-            agility: 1,
-            inventory: {
-                head: null, chest: null, legs: null, arms: null,
-                weapon1: null, weapon2: null,
-                food1: null, food2: null
-            },
-            difficulty: 0, // Pourcentage, 0-25
-            cellsTraversed: 0,
-            eventsSurvived: 0,
-            currentMap: [], // Grille 7x12
-            playerPosition: { x: 3, y: 11 }, // Joueur sur la 3ème rangée visuellement (index 2), au centre (index 3)
-            gamePhase: 'menu', // 'menu', 'map', 'event', 'combat', 'gameover'
-            currentEvent: null, // Données de l'événement en cours
-            leaderboard: {
-                gore: [],
-                friendly: []
-            },
-            dialogHistory: [] // Historique du dialogue avec l'IA
-        };
+        let gameDifficulty = 0; // Pourcentage de 0 à 25
+        let gameStarted = false;
+        let authReady = false;
+        let db, auth, userId;
 
         // Références aux éléments du DOM
-        const mainMenu = document.getElementById('mainMenu');
-        const playerNameInput = document.getElementById('playerNameInput');
-        const goreModeBtn = document.getElementById('goreModeBtn');
-        const friendlyModeBtn = document.getElementById('friendlyModeBtn');
-        const goreLeaderboardList = document.getElementById('goreLeaderboard');
-        const friendlyLeaderboardList = document.getElementById('friendlyLeaderboard');
+        const gameContainer = document.getElementById('game-container');
+        const statsDisplay = document.getElementById('stats');
+        const playerAttSpan = document.getElementById('player-att');
+        const playerHpSpan = document.getElementById('player-hp');
+        const playerAgiSpan = document.getElementById('player-agi');
+        const gameImage = document.getElementById('game-image');
+        const imageLoadingIndicator = document.getElementById('image-loading-indicator');
+        const mainTextDiv = document.getElementById('main-text');
+        const playerInput = document.getElementById('player-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const customModal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const leaderboardsDisplay = document.getElementById('leaderboards-display');
+        const modalCloseButton = document.getElementById('modal-close-button');
 
-        const gameUI = document.getElementById('gameUI');
-        const playerDisplayName = document.getElementById('playerDisplayName');
-        const playerHpSpan = document.getElementById('playerHp');
-        const playerHpFill = document.getElementById('playerHpFill');
-        const playerAttackSpan = document.getElementById('playerAttack');
-        const playerAgilitySpan = document.getElementById('playerAgility');
-        const inventoryGrid = gameUI.querySelector('.inventory-grid');
-        const mapContainer = document.getElementById('mapContainer');
-        const eventBox = document.getElementById('eventBox');
-        const eventText = document.getElementById('eventText');
-        const playerActionInput = document.getElementById('playerActionInput');
-        const submitActionButton = document.getElementById('submitActionButton');
-        const moveUpBtn = document.getElementById('moveUpBtn');
-        const moveDownBtn = document.getElementById('moveDownBtn');
-        const returnToMenuBtn = document.getElementById('returnToMenuBtn');
-        const eventOptions = document.getElementById('eventOptions');
+        let chatHistory = []; // Historique pour l'API Gemini (texte)
 
-
-        // --- Fonctions d'interface utilisateur (déclarées en premier pour éviter les erreurs de référence) ---
-        function showMainMenu() {
-            gameUI.classList.add('hidden');
-            mainMenu.classList.remove('hidden');
-            gameState.gamePhase = 'menu';
-            // fetchLeaderboards() est appelé ici
-            fetchLeaderboards();
-            applyTheme(localStorage.getItem('generativusMode') || 'gore');
+        /**
+         * Affiche ou masque l'overlay de chargement.
+         * @param {boolean} show - True pour afficher, false pour masquer.
+         * @param {string} message - Message à afficher pendant le chargement.
+         */
+        function showLoading(show, message = "Génération en cours...") {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
+            loadingOverlay.querySelector('p').textContent = message;
         }
 
-        function showGameUI() {
-            mainMenu.classList.add('hidden');
-            gameUI.classList.remove('hidden');
-            gameState.gamePhase = 'map';
-            renderMap();
-            updateUI();
-            applyTheme(gameState.mode);
-        }
-
-        function showEventUI(text) {
-            mapContainer.classList.add('hidden');
-            moveUpBtn.classList.add('hidden');
-            moveDownBtn.classList.add('hidden');
-            eventBox.classList.remove('hidden');
-            eventText.innerHTML = text.replace(/\n/g, '<br>'); // Permet les retours à la ligne
-            playerActionInput.value = '';
-            playerActionInput.focus();
-            eventOptions.innerHTML = ''; // Efface les options précédentes
-        }
-
-        function hideEventUI() {
-            eventBox.classList.add('hidden');
-            mapContainer.classList.remove('hidden');
-            moveUpBtn.classList.remove('hidden');
-            moveDownBtn.classList.remove('hidden');
-        }
-
-        function showLoading() {
-            loadingOverlay.classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            loadingOverlay.classList.add('hidden');
-        }
-
-        function showModal(title, message, options = { confirm: false, cancel: false, ok: true }) {
+        /**
+         * Affiche une modale personnalisée.
+         * @param {string} title - Titre de la modale.
+         * @param {string} message - Message de la modale.
+         * @param {boolean} showLeaderboards - Indique si les classements doivent être affichés.
+         */
+        async function showCustomModal(title, message, showLeaderboards = false) {
             modalTitle.textContent = title;
-            modalMessage.innerHTML = message; // Utilise innerHTML pour les balises <br>
-            modalConfirmBtn.classList.toggle('hidden', !options.confirm);
-            modalCancelBtn.classList.toggle('hidden', !options.cancel);
-            modalOkBtn.classList.toggle('hidden', !options.ok);
-            modal.classList.remove('hidden');
-            return new Promise(resolve => {
-                modalConfirmBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); };
-                modalCancelBtn.onclick = () => { modal.classList.add('hidden'); resolve(false); };
-                modalOkBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); }; // OK acts as confirm for simplicity
-            });
+            modalMessage.textContent = message;
+            if (showLeaderboards) {
+                await displayLeaderboards();
+                leaderboardsDisplay.style.display = 'flex';
+            } else {
+                leaderboardsDisplay.style.display = 'none';
+            }
+            customModal.style.display = 'flex';
         }
 
-        function applyTheme(mode) {
-            document.body.className = ''; // Reset classes
-            document.body.classList.add(`mode-${mode}`);
-            localStorage.setItem('generativusMode', mode);
-        }
-
-        // --- Fonctions Firestore pour les classements (déclarées en second car appelées par UI functions) ---
-        async function fetchLeaderboards() {
-            if (!isAuthReady || !db) {
-                console.log("Firestore pas prêt, saut du chargement des classements.");
-                return;
+        // Fermer la modale
+        modalCloseButton.onclick = () => {
+            customModal.style.display = 'none';
+            if (player.vie <= 0) { // Si le joueur est mort, revenir au menu principal
+                resetGame();
+                showMainMenu();
             }
+        };
 
-            goreLeaderboardList.innerHTML = '<li>Chargement...</li>';
-            friendlyLeaderboardList.innerHTML = '<li>Chargement...</li>';
-
-            try {
-                // Requête pour le mode Gore
-                const goreQuery = query(
-                    collection(db, `artifacts/${appId}/public/data/leaderboards`),
-                    where('mode', '==', 'gore'),
-                    orderBy('score', 'desc'),
-                    limit(5)
-                );
-                const goreSnapshot = await getDocs(goreQuery);
-                updateLeaderboardUI(goreLeaderboardList, goreSnapshot);
-
-                // Requête pour le mode Amical
-                const friendlyQuery = query(
-                    collection(db, `artifacts/${appId}/public/data/leaderboards`),
-                    where('mode', '==', 'friendly'),
-                    orderBy('score', 'desc'),
-                    limit(5)
-                );
-                const friendlySnapshot = await getDocs(friendlyQuery);
-                updateLeaderboardUI(friendlyLeaderboardList, friendlySnapshot);
-
-            } catch (error) {
-                console.error("Erreur lors du chargement des classements:", error);
-                goreLeaderboardList.innerHTML = '<li>Erreur de chargement.</li>';
-                friendlyLeaderboardList.innerHTML = '<li>Erreur de chargement.</li>';
-            }
-        }
-
-        function updateLeaderboardUI(ulElement, snapshot) {
-            ulElement.innerHTML = ''; // Clear previous list
-            if (snapshot.empty) {
-                ulElement.innerHTML = '<li>Aucun score enregistré.</li>';
-                return;
-            }
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const li = document.createElement('li');
-                li.className = 'py-1 border-b last:border-b-0';
-                li.textContent = `${data.playerName}: ${data.score} points`;
-                ulElement.appendChild(li);
-            });
-        }
-
-        async function saveScore() {
-            if (!isAuthReady || !db || !userId) {
-                console.log("Firestore pas prêt ou utilisateur non authentifié, saut de la sauvegarde du score.");
-                return;
-            }
-
-            const currentScore = gameState.cellsTraversed + gameState.eventsSurvived;
-            const mode = gameState.mode;
-
-            try {
-                // Vérifier s'il y a de la place dans le top 5 ou si le score est meilleur
-                const q = query(
-                    collection(db, `artifacts/${appId}/public/data/leaderboards`),
-                    where('mode', '==', mode),
-                    orderBy('score', 'asc'),
-                    limit(5)
-                );
-                const snapshot = await getDocs(q);
-
-                let shouldAddScore = false;
-                if (snapshot.size < 5) {
-                    shouldAddScore = true;
-                } else {
-                    // S'il y a 5 scores, vérifie si le score actuel est meilleur que le plus bas
-                    const lowestScoreDoc = snapshot.docs[0]; // Car trié par 'asc'
-                    if (currentScore > lowestScoreDoc.data().score) {
-                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/leaderboards`, lowestScoreDoc.id));
-                        shouldAddScore = true;
-                    }
-                }
-
-                if (shouldAddScore) {
-                    await addDoc(collection(db, `artifacts/${appId}/public/data/leaderboards`), {
-                        playerName: gameState.playerName,
-                        score: currentScore,
-                        mode: mode,
-                        timestamp: new Date()
-                    });
-                    console.log("Score enregistré avec succès !");
-                }
-            } catch (error) {
-                console.error("Erreur lors de l'enregistrement du score:", error);
-            }
-        }
-
-
-        // --- Fonctions d'initialisation Firebase (déclarées après les fonctions UI/Firestore qu'elles appellent) ---
+        /**
+         * Initialise Firebase et l'authentification.
+         */
         async function initializeFirebase() {
             try {
-                // Initialise l'application Firebase avec votre configuration
-                app = initializeApp(firebaseConfig);
+                const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous
-                // const analytics = getAnalytics(app);
 
-                // Gère les changements d'état d'authentification
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        // Si un utilisateur est déjà authentifié
                         userId = user.uid;
-                        console.log("Firebase user ID:", userId);
-                        isAuthReady = true; // L'authentification est prête
-                        showMainMenu(); // Appel de displayMainMenu ICI
-                        // fetchLeaderboards() est appelé à l'intérieur de showMainMenu
+                        console.log("Firebase Authenticated. User ID:", userId);
                     } else {
-                        // Si aucun utilisateur n'est authentifié, tente une connexion anonyme
+                        console.log("Firebase Not Authenticated, attempting anonymous sign-in.");
                         try {
-                            await signInAnonymously(auth);
-                            userId = auth.currentUser.uid;
-                            console.log("Connecté anonymement. ID utilisateur:", userId);
-                            isAuthReady = true; // L'authentification est prête
-                            showMainMenu(); // Appel de displayMainMenu ICI
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                                userId = auth.currentUser.uid;
+                                console.log("Signed in with custom token. User ID:", userId);
+                            } else {
+                                await signInAnonymously(auth);
+                                userId = auth.currentUser.uid;
+                                console.log("Signed in anonymously. User ID:", userId);
+                            }
                         } catch (error) {
-                            console.error("Firebase authentication error during anonymous sign-in:", error);
-                            // Affiche une erreur modale et ne continue pas si l'authentification échoue
-                            showModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Veuillez vérifier :<br>1. Votre configuration Firebase (apiKey, projectId, etc.).<br>2. Que le fournisseur d'authentification 'Anonymous' est bien activé dans votre console Firebase (section Authentication -> Sign-in method).<br>3. Que vos règles Firestore autorisent la lecture/écriture pour les classements.");
+                            console.error("Firebase Auth Error:", error);
+                            showCustomModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Certaines fonctionnalités pourraient être limitées.");
+                            userId = crypto.randomUUID(); // Fallback for userId
+                            console.warn("Using a random UUID for userId as fallback:", userId);
                         }
                     }
+                    authReady = true;
+                    if (!gameStarted) {
+                        showMainMenu(); // Afficher le menu principal une fois que l'authentification est prête
+                    }
                 });
-
             } catch (error) {
-                console.error("Erreur d'initialisation de l'application Firebase (initializeApp):", error);
-                // Affiche une erreur modale si initializeApp échoue (ex: mauvaise config)
-                showModal("Erreur d'initialisation de l'application", "La configuration Firebase est incorrecte ou inaccessible. Veuillez vérifier vos clés API et l'ID de votre projet.");
+                console.error("Erreur lors de l'initialisation de Firebase:", error);
+                showCustomModal("Erreur Firebase", "Impossible d'initialiser Firebase. Vérifiez la configuration.");
+                userId = crypto.randomUUID(); // Fallback for userId
+                console.warn("Using a random UUID for userId as fallback:", userId);
+                authReady = true; // Permettre au jeu de continuer même si Firebase a échoué
+                if (!gameStarted) {
+                    showMainMenu();
+                }
             }
         }
 
+        /**
+         * Met à jour l'affichage des statistiques du joueur.
+         */
+        function updateStatsUI() {
+            playerAttSpan.textContent = `ATT: ${player.att}`;
+            playerHpSpan.textContent = `VIE: ${Math.max(0, player.vie)}/${player.maxVie}`;
+            playerAgiSpan.textContent = `AGI: ${player.agi}`;
+        }
 
-        // --- Fonctions de l'API Gemini ---
-        async function callGemini(prompt, history = []) {
-            showLoading();
+        /**
+         * Met à jour le texte principal affiché dans le jeu.
+         * @param {string} text - Le texte à afficher.
+         * @param {boolean} isPlayerMessage - Indique si le message vient du joueur.
+         */
+        function updateMainText(text, isPlayerMessage = false) {
+            const p = document.createElement('p');
+            p.innerHTML = text; // Utiliser innerHTML pour permettre les retours à la ligne de l'IA
+            if (isPlayerMessage) {
+                p.classList.add('player-message');
+            }
+            mainTextDiv.appendChild(p);
+            mainTextDiv.scrollTop = mainTextDiv.scrollHeight; // Défilement automatique vers le bas
+        }
+
+        /**
+         * Met à jour l'image du jeu en appelant l'API Gemini Image.
+         * @param {string} imagePrompt - Le prompt pour la génération d'image.
+         */
+        async function updateGameImage(imagePrompt) {
+            gameImage.style.opacity = 0; // Masque l'image précédente
+            imageLoadingIndicator.style.display = 'block'; // Affiche l'indicateur
+            gameImage.src = ''; // Efface l'image précédente
+
             try {
-                let chatHistory = [];
-                // Ajouter l'historique du dialogue précédent
-                history.forEach(entry => {
-                    chatHistory.push({ role: entry.role, parts: [{ text: entry.text }] });
-                });
-                // Ajouter le prompt actuel
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
+                // Pour imagen-3.0-generate-002, la clé API est passée dans l'URL.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_IMAGE_API_KEY}`;
                 const payload = {
-                    contents: chatHistory,
+                    instances: {
+                        // MÀJ du prompt pour le ratio 16:9
+                        prompt: `${imagePrompt}, pixel art 16:9, ${player.mode === 'Gore' ? 'black and white, dark, grim, scary' : 'vivid colors, cute, friendly, bright'}`
+                    },
+                    parameters: {
+                        sampleCount: 1
+                    }
                 };
-                console.log("Envoi à Gemini:", payload);
 
-                const response = await fetch(GEMINI_API_URL, {
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const result = await response.json();
-                console.log("Réponse de Gemini:", result);
 
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    gameState.dialogHistory.push({ role: "user", text: prompt });
-                    gameState.dialogHistory.push({ role: "model", text: text });
-                    return text;
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    gameImage.src = imageUrl;
+                    gameImage.onload = () => {
+                        imageLoadingIndicator.style.display = 'none';
+                        gameImage.style.opacity = 1; // Révèle la nouvelle image
+                    };
+                    gameImage.onerror = () => {
+                        console.error("Erreur de chargement de l'image. Tentative de placeholder.");
+                        // MÀJ du placeholder pour le ratio 16:9
+                        gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
+                        imageLoadingIndicator.style.display = 'none';
+                        gameImage.style.opacity = 1;
+                    };
                 } else {
-                    console.error("Structure de réponse Gemini inattendue:", result);
-                    return "Une erreur est survenue lors de la communication avec l'IA. Veuillez réessayer.";
+                    console.error("Réponse de l'API Image inattendue:", result);
+                    // MÀJ du placeholder pour le ratio 16:9
+                    gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
+                    imageLoadingIndicator.style.display = 'none';
+                    gameImage.style.opacity = 1;
                 }
             } catch (error) {
-                console.error("Erreur d'appel API Gemini:", error);
-                return "Une erreur de réseau ou de serveur est survenue. Veuillez vérifier votre connexion.";
-            } finally {
-                hideLoading();
+                console.error("Erreur lors de la génération d'image:", error);
+                // MÀJ du placeholder pour le ratio 16:9
+                gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Erreur+Image`;
+                imageLoadingIndicator.style.display = 'none';
+                gameImage.style.opacity = 1;
             }
         }
 
-        async function generateBackstory() {
-            const prompt = `Génère une brève histoire d'origine (environ 3-4 phrases) pour un personnage nommé "${gameState.playerName}" qui commence son aventure dans le donjon "Generativus". Adapte le ton au mode de jeu "${gameState.mode}". En mode "gore", l'histoire doit être sombre et brutale. En mode "amical", l'histoire doit être légère et pleine d'espoir.`;
-            return callGemini(prompt);
-        }
-
-        async function generateEvent(type, difficulty, playerStats, playerInventory) {
-            const inventoryDescription = Object.entries(playerInventory)
-                .filter(([slot, item]) => item !== null)
-                .map(([slot, item]) => `${item.name} (${slot})`)
-                .join(', ') || 'aucun';
-
-            const prompt = `
-            Tu es le maître de jeu du donjon "Generativus".
-            Le joueur "${gameState.playerName}" (HP: ${playerStats.hp}/${playerStats.maxHp}, Attaque: ${playerStats.attack}, Agilité: ${playerStats.agility})
-            est équipé de: ${inventoryDescription}.
-            Le jeu est en mode "${gameState.mode}" (gore = sombre/brutal, amical = léger/coloré).
-            La difficulté actuelle est de ${difficulty}%.
-
-            Génère un ${type} aléatoire.
-            - Si c'est un 'ennemi', décris la rencontre et les options de combat (attaquer, tenter de fuir, essayer une action ingénieuse).
-            - Si c'est un 'piège', décris le piège, ses conséquences initiales, et les options pour le désamorcer/éviter.
-            - Si c'est un 'événement contextuel', décris la situation et les options d'interaction.
-
-            Pour chaque interaction :
-            1. Décris la scène.
-            2. Propose des options d'action que le joueur peut choisir, ou indique clairement que le joueur peut saisir une action libre.
-            3. Si c'est un combat, l'IA doit gérer les PV de l'ennemi, les lancers de dés (1D6 + Attaque du joueur), l'agilité (5% d'esquive par point d'agilité pour le joueur/ennemi).
-            4. L'IA doit évaluer l'ingéniosité des actions libres et récompenser/pénaliser en fonction.
-            5. L'IA doit toujours renvoyer la nouvelle situation et les PV restants de l'ennemi si applicable.
-
-            Exemple de réponse attendue:
-            "Vous entrez dans une salle sombre. Une ombre se déplace dans le coin. Que faites-vous ? (1. Attaquer l'ombre, 2. Examiner la salle, 3. Tenter de fuir)"
-
-            Répond en français.
-            `;
-            return callGemini(prompt);
-        }
-
-        async function resolvePlayerAction(action, currentEvent, playerStats, playerInventory, difficulty) {
-            const inventoryDescription = Object.entries(playerInventory)
-                .filter(([slot, item]) => item !== null)
-                .map(([slot, item]) => `${item.name} (${slot})`)
-                .join(', ') || 'aucun';
-
-            const prompt = `
-            Le joueur "${gameState.playerName}" (HP: ${playerStats.hp}/${playerStats.maxHp}, Attaque: ${playerStats.attack}, Agilité: ${playerStats.agility})
-            est équipé de: ${inventoryDescription}.
-            Le jeu est en mode "${gameState.mode}".
-            La difficulté actuelle est de ${difficulty}%.
-
-            Contexte de l'événement actuel: "${currentEvent.description}".
-            L'action du joueur est: "${action}".
-
-            Évalue l'action du joueur en fonction du contexte, de la difficulté et des statistiques du joueur.
-            Décris les conséquences de l'action.
-            Si l'action entraîne un gain/perte de HP, une modification des statistiques, ou un gain d'objet, indique-le clairement.
-            Si l'événement est résolu, indique "FIN_EVENEMENT".
-            Si un combat commence, indique "DEBUT_COMBAT: [Nom de l'ennemi], PV: [PV de l'ennemi]".
-            Si l'action du joueur est ingénieuse, indique "INGENIOSITE_RECOMPENSE: [Description de la récompense]".
-            Si le joueur tente de modifier la difficulté du combat, évalue et applique la modification, puis indique "DIFFICULTE_MODIFIEE: [Nouvelle Difficulté]".
-
-            Exemples de format de sortie pour des actions spécifiques:
-            - "DEGATS: [nombre]": Le joueur prend des dégâts.
-            - "SOIN: [nombre]": Le joueur regagne des PV.
-            - "GAIN_OBJET: [type],[nom],[stat],[valeur]": Le joueur gagne un objet. Ex: "GAIN_OBJET: arme,Épée Rouillée,attaque,2"
-            - "STATS_MODIFIEES: [stat],[valeur]": Les stats du joueur sont modifiées temporairement.
-            - "FIN_PARTIE: [raison]": Le joueur est vaincu.
-            - "FIN_EVENEMENT": L'événement est terminé.
-            - "CONTINUE_COMBAT: [description du tour], PV Ennemi: [PV]"
-            - "VICTOIRE_COMBAT: [description de la victoire]"
-            - "FUITE_REUSSIE: [description de la fuite]"
-
-            Répond en français et sois concis dans les indicateurs (DEGATS, SOIN, etc.).
-            `;
-            return callGemini(prompt, gameState.dialogHistory);
-        }
-
-
-        // --- Fonctions de jeu ---
-        function startGame() {
-            const playerName = playerNameInput.value.trim();
-            if (!playerName) {
-                showModal("Erreur", "Veuillez entrer un nom de personnage !");
-                return;
-            }
-            if (!gameState.mode) {
-                showModal("Erreur", "Veuillez choisir un mode de jeu (Gore ou Amical) !");
-                return;
-            }
-
-            gameState.playerName = playerName;
-            gameState.hp = 100;
-            gameState.maxHp = 100;
-            gameState.attack = 1;
-            gameState.agility = 1;
-            gameState.difficulty = 0;
-            gameState.cellsTraversed = 0;
-            gameState.eventsSurvived = 0;
-            gameState.playerPosition = { x: 3, y: 11 };
-            gameState.inventory = {
-                head: null, chest: null, legs: null, arms: null,
-                weapon1: null, weapon2: null,
-                food1: null, food2: null
+        /**
+         * Affiche le menu principal et gère la saisie initiale.
+         */
+        async function showMainMenu() {
+            gameStarted = false;
+            mainTextDiv.innerHTML = 'Bienvenue dans Generativus ! Un monde créé par l\'IA.<br>Entrez votre nom et choisissez votre mode de jeu (Mode Gore ou Mode Amical) pour commencer.';
+            updateStatsUI(); // Réinitialise les stats affichées
+            playerInput.placeholder = "Votre nom et mode (Ex: Arthur Mode Gore)";
+            // Afficher l'image du menu principal
+            await updateGameImage("pixel art 16:9, gloomy dungeon, Castlevania style, main menu, title Generativus");
+            sendButton.onclick = handleMainMenuInput; // Attacher le gestionnaire pour le menu
+            playerInput.onkeypress = (e) => {
+                if (e.key === 'Enter') handleMainMenuInput();
             };
-            gameState.dialogHistory = [];
-
-            playerDisplayName.textContent = gameState.playerName;
-            showGameUI();
-            updateUI();
-            generateInitialMap();
-            generateAndDisplayBackstory();
         }
 
-        async function generateAndDisplayBackstory() {
-            const backstory = await generateBackstory();
-            showModal("Votre Histoire", backstory, { ok: true });
-        }
+        /**
+         * Gère la saisie du joueur dans le menu principal.
+         */
+        async function handleMainMenuInput() {
+            const input = playerInput.value.trim();
+            if (!input) return;
 
-        function updateUI() {
-            playerHpSpan.textContent = `${gameState.hp}/${gameState.maxHp}`;
-            playerHpFill.style.width = `${(gameState.hp / gameState.maxHp) * 100}%`;
-            playerAttackSpan.textContent = gameState.attack;
-            playerAgilitySpan.textContent = gameState.agility;
+            updateMainText(`> ${input}`, true); // Affiche la saisie du joueur
+            playerInput.value = ''; // Efface la saisie
 
-            // Mettre à jour l'inventaire visuellement
-            inventoryGrid.innerHTML = ''; // Clear existing
-            const slotTypes = ['head', 'chest', 'legs', 'arms', 'weapon1', 'weapon2', 'food1', 'food2'];
-            slotTypes.forEach(slotType => {
-                const slotDiv = document.createElement('div');
-                slotDiv.className = 'inventory-slot rounded-lg flex items-center justify-center p-1';
-                slotDiv.dataset.slot = slotType;
-
-                let icon = '';
-                let itemText = '';
-                if (gameState.inventory[slotType]) {
-                    const item = gameState.inventory[slotType];
-                    itemText = item.name;
-                    slotDiv.classList.add('equipped'); // For equipped items
-                    if (slotType.startsWith('food')) icon = '🍎';
-                    else if (slotType.includes('weapon')) icon = '⚔️';
-                    else if (slotType.includes('head')) icon = '🎩';
-                    else if (slotType.includes('chest')) icon = '👕';
-                    else if (slotType.includes('legs')) icon = '👖';
-                    else if (slotType.includes('arms')) icon = '🧤';
+            const nameMatch = input.match(/^(.*?)\s+(Mode\s+(Gore|Amical))$/i);
+            if (nameMatch) {
+                player.name = nameMatch[1].trim();
+                player.mode = nameMatch[3].trim();
+                if (player.name && player.mode) {
+                    startGame();
                 } else {
-                    itemText = slotType.charAt(0).toUpperCase() + slotType.slice(1).replace(/\d/g, ''); // e.g., 'Head', 'Weapon'
-                    if (slotType.startsWith('food')) icon = '❓'; // Placeholder for empty food slot
-                    else if (slotType.includes('weapon')) icon = '❓';
-                    else if (slotType.includes('head')) icon = '❓';
-                    else if (slotType.includes('chest')) icon = '❓';
-                    else if (slotType.includes('legs')) icon = '❓';
-                    else if (slotType.includes('arms')) icon = '❓';
+                    updateMainText("Format invalide. Veuillez entrer votre nom suivi de 'Mode Gore' ou 'Mode Amical'. Ex: 'Arthur Mode Gore'");
                 }
-                slotDiv.innerHTML = `<span class="text-xs absolute top-1">${itemText}</span><span class="text-xl">${icon}</span>`;
-
-                // Handle click for item usage/equipping
-                slotDiv.onclick = () => handleItemClick(slotType);
-                inventoryGrid.appendChild(slotDiv);
-            });
-        }
-
-        function handleItemClick(slotType) {
-            const item = gameState.inventory[slotType];
-            if (!item) {
-                showModal("Inventaire", `L'emplacement "${slotType}" est vide.`);
-                return;
-            }
-
-            if (item.type === 'food') {
-                showModal("Utiliser la nourriture", `Voulez-vous consommer ${item.name} pour regagner des PV ?`, { confirm: true, cancel: true }).then(result => {
-                    if (result) consumeFood(slotType);
-                });
-            } else if (['weapon', 'armor', 'shield'].includes(item.type)) {
-                // Logic for equipping/unequipping
-                showModal("Équiper l'objet", `Voulez-vous équiper ${item.name} ? (Actuellement équipé dans l'emplacement ${slotType})`, { confirm: true, cancel: true }).then(result => {
-                    if (result) equipItem(item, slotType); // Pass item and its current slot
-                });
-            }
-            updateUI();
-        }
-
-        function equipItem(itemToEquip, fromSlot) {
-            // Find appropriate slot based on item type
-            let targetSlot = null;
-            if (itemToEquip.type === 'weapon') {
-                if (!gameState.inventory.weapon1) targetSlot = 'weapon1';
-                else if (!gameState.inventory.weapon2) targetSlot = 'weapon2';
-                else if (itemToEquip.stats.attack > (gameState.inventory.weapon1?.stats?.attack || 0)) targetSlot = 'weapon1'; // Replace weaker weapon
-                else if (itemToEquip.stats.attack > (gameState.inventory.weapon2?.stats?.attack || 0)) targetSlot = 'weapon2';
-            } else if (itemToEquip.type === 'armor') {
-                if (itemToEquip.slot === 'head' && !gameState.inventory.head) targetSlot = 'head';
-                else if (itemToEquip.slot === 'chest' && !gameState.inventory.chest) targetSlot = 'chest';
-                // ... similar for other armor types (legs, arms)
-            }
-            // Simplified for now: just put into the slot it came from, or an empty one if new
-            if (fromSlot && itemToEquip === gameState.inventory[fromSlot]) {
-                // It's already in its designated slot or was picked up directly into it
-                showModal("Équipé", `${itemToEquip.name} est déjà équipé.`);
-                return;
-            }
-
-            let equippedSuccessfully = false;
-            if (itemToEquip.type === 'weapon' && (targetSlot === 'weapon1' || targetSlot === 'weapon2')) {
-                if (gameState.inventory[targetSlot]) {
-                    // Unequip existing item first if slot is occupied
-                    removeStatsFromItem(gameState.inventory[targetSlot]);
-                }
-                gameState.inventory[targetSlot] = itemToEquip;
-                applyStatsFromItem(itemToEquip);
-                equippedSuccessfully = true;
-            } else if (itemToEquip.type === 'armor') {
-                 // Logic for specific armor slots
-                 if (itemToEquip.slot === 'head') targetSlot = 'head';
-                 else if (itemToEquip.slot === 'chest') targetSlot = 'chest';
-                 else if (itemToEquip.slot === 'legs') targetSlot = 'legs';
-                 else if (itemToEquip.slot === 'arms') targetSlot = 'arms';
-
-                 if (targetSlot) {
-                     if (gameState.inventory[targetSlot]) {
-                         removeStatsFromItem(gameState.inventory[targetSlot]);
-                     }
-                     gameState.inventory[targetSlot] = itemToEquip;
-                     applyStatsFromItem(itemToEquip);
-                     equippedSuccessfully = true;
-                 }
-            } else if (itemToEquip.type === 'shield') {
-                // Shield logic - might occupy weapon2 or a dedicated shield slot
-                // For simplicity, let's say it occupies weapon2 slot if weapon1 is free, or it replaces a weapon
-                if (!gameState.inventory.weapon2) targetSlot = 'weapon2'; // Use weapon2 slot for shield
-                else if (gameState.inventory.weapon2.type !== 'shield') { // Replace if it's not a shield
-                     removeStatsFromItem(gameState.inventory.weapon2);
-                     targetSlot = 'weapon2';
-                }
-                if (targetSlot) {
-                    gameState.inventory[targetSlot] = itemToEquip;
-                    applyStatsFromItem(itemToEquip);
-                    equippedSuccessfully = true;
-                }
-            }
-
-
-            if (equippedSuccessfully) {
-                showModal("Équipé", `${itemToEquip.name} a été équipé. Vos stats ont été mises à jour.`);
             } else {
-                showModal("Échec de l'équipement", `Impossible d'équiper ${itemToEquip.name} pour le moment.`);
-            }
-            updateUI();
-        }
-
-        function consumeFood(slotType) {
-            const food = gameState.inventory[slotType];
-            if (food && food.type === 'food') {
-                const healthRestored = food.stats.hp;
-                gameState.hp = Math.min(gameState.maxHp, gameState.hp + healthRestored);
-                gameState.inventory[slotType] = null; // Remove consumed food
-                showModal("Nourriture consommée", `${food.name} consommé. Vous avez regagné ${healthRestored} PV.`, { ok: true });
-                updateUI();
+                updateMainText("Format invalide. Veuillez entrer votre nom suivi de 'Mode Gore' ou 'Mode Amical'. Ex: 'Arthur Mode Gore'");
             }
         }
 
-        function applyStatsFromItem(item) {
-            if (item.stats.hp) gameState.maxHp += item.stats.hp;
-            if (item.stats.attack) gameState.attack += item.stats.attack;
-            if (item.stats.agility) gameState.agility += item.stats.agility;
-        }
-
-        function removeStatsFromItem(item) {
-            if (item.stats.hp) gameState.maxHp -= item.stats.hp;
-            if (item.stats.attack) gameState.attack -= item.stats.attack;
-            if (item.stats.agility) gameState.agility -= item.stats.agility;
-            // Ensure HP doesn't exceed new max HP
-            if (gameState.hp > gameState.maxHp) gameState.hp = gameState.maxHp;
-        }
-
-        function generateInitialMap() {
-            gameState.currentMap = [];
-            for (let r = 0; r < 12; r++) {
-                const row = [];
-                for (let c = 0; c < 7; c++) {
-                    row.push(generateCellContent(r, c));
-                }
-                gameState.currentMap.push(row);
-            }
-            renderMap();
-        }
-
-        function generateCellContent(row, col) {
-            if (row === gameState.playerPosition.y && col === gameState.playerPosition.x) {
-                return { type: 'player', icon: '🤠' }; // Joueur
-            }
-            // Générer aléatoirement des ennemis, pièges ou événements
-            const rand = Math.random();
-            if (rand < 0.15) { // 15% chance for enemy
-                return { type: 'enemy', icon: '👹', name: 'Monstre', hp: 20, attack: 5 }; // Exemple d'ennemi
-            } else if (rand < 0.25) { // 10% chance for trap
-                return { type: 'trap', icon: '🚧', name: 'Piège à pointes' };
-            } else if (rand < 0.35) { // 10% chance for item
-                return { type: 'item', icon: '💰', item: generateRandomItem() };
-            }
-            return { type: 'empty', icon: '' }; // Cellule vide
-        }
-
-        function generateRandomItem() {
-            const itemTypes = ['weapon', 'armor', 'food', 'shield'];
-            const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-            const value = Math.floor(Math.random() * 4) + 1; // +1 to +4
-            const commonNames = {
-                weapon: ["Épée rouillée", "Hache légère", "Dague pointue", "Bâton noueux"],
-                armor: ["Casque de fer", "Plastron de cuir", "Bottes usées", "Gantelets cloutés"],
-                food: ["Pomme", "Pain rassis", "Viande séchée", "Champignon étrange"],
-                shield: ["Petit bouclier", "Rondache en bois"]
-            };
-            const randomName = commonNames[randomType][Math.floor(Math.random() * commonNames[randomType].length)];
-
-            const item = {
-                name: randomName,
-                type: randomType,
-                stats: {}
+        /**
+         * Démarre une nouvelle partie.
+         */
+        async function startGame() {
+            gameStarted = true;
+            player.vie = player.maxVie; // Réinitialise la vie
+            player.score = 0;
+            gameDifficulty = 0; // Difficultité initiale
+            updateStatsUI();
+            document.body.classList.toggle('friendly-mode', player.mode === 'Amical');
+            mainTextDiv.innerHTML = ''; // Efface le texte du menu
+            playerInput.placeholder = "Votre action...";
+            sendButton.onclick = sendPlayerAction; // Attacher le gestionnaire pour le jeu
+            playerInput.onkeypress = (e) => {
+                if (e.key === 'Enter') sendPlayerAction();
             };
 
-            if (randomType === 'weapon') item.stats.attack = value;
-            else if (randomType === 'armor') {
-                const armorSlots = ['head', 'chest', 'legs', 'arms'];
-                item.slot = armorSlots[Math.floor(Math.random() * armorSlots.length)];
-                item.stats.hp = value; // Armor gives HP
-            }
-            else if (randomType === 'food') item.stats.hp = value * 5; // Food gives more HP
-            else if (randomType === 'shield') item.stats.agility = value; // Shield gives agility
-
-            return item;
+            await generateBackstory();
         }
 
-        function renderMap() {
-            mapContainer.innerHTML = ''; // Clear previous map
-            mapContainer.style.transition = 'none'; // Disable transition for initial render/reset
-            mapContainer.style.transform = 'translateY(0)'; // Reset transform
+        /**
+         * Génère la backstory du personnage via l'API Gemini Text.
+         */
+        async function generateBackstory() {
+            showLoading(true, "Génération de votre histoire...");
+            // MÀJ du prompt pour la perspective de l'avatar
+            const prompt = `Génère une brève backstory pour vous, un personnage nommé ${player.name}, qui êtes sur le point d'entrer dans un donjon appelé Generativus. Le mode de jeu est "${player.mode}". Le ton doit correspondre au mode. Sois très concis, juste un court paragraphe.`;
 
-            for (let r = 0; r < 12; r++) {
-                for (let c = 0; c < 7; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'game-cell flex items-center justify-center rounded-sm';
-                    const cellContent = gameState.currentMap[r][c];
+            chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
 
-                    // Appliquer des couleurs ou icônes spécifiques au mode
-                    if (cellContent.type === 'player') {
-                        cell.classList.add('player-cell');
-                        cell.textContent = cellContent.icon;
-                    } else if (cellContent.type === 'enemy') {
-                        cell.classList.add('enemy-cell');
-                        cell.textContent = cellContent.icon;
-                    } else if (cellContent.type === 'item') {
-                        cell.classList.add('item-cell');
-                        cell.textContent = cellContent.icon;
-                    } else if (cellContent.type === 'trap') {
-                        cell.classList.add('trap-cell');
-                        cell.textContent = cellContent.icon;
-                    } else {
-                        cell.classList.add('empty-cell');
-                        cell.textContent = cellContent.icon;
+            try {
+                const response = await callGeminiTextAPI(chatHistory);
+                updateMainText(response);
+                chatHistory.push({ role: "model", parts: [{ text: response }] });
+                await continueGame();
+            } catch (error) {
+                console.error("Erreur lors de la génération de la backstory:", error);
+                updateMainText("Une erreur est survenue lors de la génération de l'histoire. Veuillez réessayer.");
+                showLoading(false);
+            }
+        }
+
+        /**
+         * Continue le jeu en générant le prochain événement.
+         */
+        async function continueGame() {
+            // Déterminer la prochaine action de l'IA (événement, combat, etc.)
+            // Ceci sera géré principalement par l'IA textuelle
+            showLoading(true, "Exploration du donjon...");
+            // MÀJ du prompt pour la perspective de l'avatar
+            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire (non-visible) contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
+            Quel événement se produit ? Décrivez-le brièvement, et proposez des choix ou attendez une action libre de votre part. Le ton est "${player.mode}".
+            **Format de réponse attendu (JSON):**
+            \`\`\`json
+            {
+              "narrative_text": "Texte décrivant l'événement et les options.",
+              "image_prompt": "Prompt pour l'image (pixel art 16:9, [contexte], [mode])",
+              "action_required": true
+            }
+            \`\`\`
+            `;
+
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            try {
+                const responseJson = await callGeminiTextAPI(chatHistory, {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "narrative_text": { "type": "STRING" },
+                            "image_prompt": { "type": "STRING" },
+                            "action_required": { "type": "BOOLEAN" }
+                        },
+                        "propertyOrdering": ["narrative_text", "image_prompt", "action_required"]
                     }
+                });
 
-                    mapContainer.appendChild(cell);
+                const parsedResponse = JSON.parse(responseJson);
+                updateMainText(parsedResponse.narrative_text);
+                chatHistory.push({ role: "model", parts: [{ text: responseJson }] }); // Stocke la réponse JSON de l'IA
+
+                if (parsedResponse.image_prompt) {
+                    await updateGameImage(parsedResponse.image_prompt);
                 }
+                player.score++; // Chaque événement survécu augmente le score
+            } catch (error) {
+                console.error("Erreur lors de la continuation du jeu:", error);
+                updateMainText("Une erreur est survenue, le donjon semble instable. Veuillez réessayer.");
+            } finally {
+                showLoading(false);
             }
-            // Re-enable transition after a brief delay
-            setTimeout(() => {
-                mapContainer.style.transition = 'transform 0.3s ease-out';
-            }, 50);
         }
 
-        function movePlayer(direction) {
-            if (gameState.gamePhase !== 'map') return;
+        /**
+         * Gère l'envoi de l'action du joueur à l'API Gemini Text.
+         */
+        async function sendPlayerAction() {
+            const input = playerInput.value.trim();
+            if (!input) return;
 
-            let newPlayerY = gameState.playerPosition.y;
-            if (direction === 'up') {
-                newPlayerY--;
-                gameState.cellsTraversed++;
-            } else if (direction === 'down') {
-                newPlayerY++;
+            updateMainText(`> ${input}`, true); // Affiche la saisie du joueur
+            playerInput.value = ''; // Efface la saisie
+
+            showLoading(true, "L'IA analyse votre action...");
+
+            // MÀJ du prompt pour la perspective de l'avatar
+            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire (non-visible) contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
+            Évaluez la réussite/échec de cette action en fonction du contexte précédent, du réalisme, et de la difficulté. Décrivez les conséquences (dégâts, gain de vie, obtention/perte d'objets, changement de statistiques, fuite, fin de combat, etc.).
+            Si vous demandez votre inventaire, décrivez-le. Si vous utilisez un objet, gérez son effet. Si vous tentez d'équiper, appliquez les stats.
+            Augmentez la difficulté du jeu (gameDifficulty) très légèrement après chaque action réussie qui fait progresser l'histoire (max 25%).
+            **Format de réponse attendu (JSON):**
+            \`\`\`json
+            {
+              "narrative_text": "Texte décrivant les conséquences de l'action.",
+              "image_prompt": "Prompt pour l'image (pixel art 16:9, [contexte], [mode])",
+              "stat_changes": { "att": 0, "vie": 0, "maxVie": 0, "agi": 0 },
+              "inventory_changes": [], // Ex: [{ "action": "add", "item": "épée rouillée" }, { "action": "remove", "item": "potion de soin" }]
+              "game_over": false,
+              "next_event_ready": false // True si l'IA a terminé sa réponse pour cet événement et attend le prochain
             }
+            \`\`\`
+            Note: Si vous utilisez une potion de soin, la vie ne peut pas dépasser la vie maximale. Si un objet est équipé, ses stats sont ajoutées à vos stats et supprimées de l'inventaire virtuel, et les stats de l'objet précédemment équipé (si applicable) sont retirées. La vie maximum ne doit jamais dépasser 99.
+            `;
 
-            if (newPlayerY < 0) { // Player tries to go beyond the top edge
-                // Generate a new row at the top and shift the map down
-                const newRow = [];
-                for (let c = 0; c < 7; c++) {
-                    newRow.push(generateCellContent(-1, c)); // -1 to indicate it's a new row, not for player position
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            try {
+                const responseJson = await callGeminiTextAPI(chatHistory, {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "narrative_text": { "type": "STRING" },
+                            "image_prompt": { "type": "STRING" },
+                            "stat_changes": {
+                                "type": "OBJECT",
+                                "properties": {
+                                    "att": { "type": "NUMBER" },
+                                    "vie": { "type": "NUMBER" },
+                                    "maxVie": { "type": "NUMBER" },
+                                    "agi": { "type": "NUMBER" }
+                                }
+                            },
+                            "inventory_changes": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "action": { "type": "STRING" },
+                                        "item": { "type": "STRING" }
+                                    }
+                                }
+                            },
+                            "game_over": { "type": "BOOLEAN" },
+                            "next_event_ready": { "type": "BOOLEAN" }
+                        },
+                        "propertyOrdering": ["narrative_text", "image_prompt", "stat_changes", "inventory_changes", "game_over", "next_event_ready"]
+                    }
+                });
+
+                const parsedResponse = JSON.parse(responseJson);
+
+                updateMainText(parsedResponse.narrative_text);
+                chatHistory.push({ role: "model", parts: [{ text: responseJson }] }); // Stocke la réponse JSON de l'IA
+
+                // Appliquer les changements de stats
+                if (parsedResponse.stat_changes) {
+                    player.att += parsedResponse.stat_changes.att || 0;
+                    player.vie += parsedResponse.stat_changes.vie || 0;
+                    player.maxVie += parsedResponse.stat_changes.maxVie || 0;
+                    player.agi += parsedResponse.stat_changes.agi || 0;
+
+                    // Clamp VIE à maxVie et maxVie à 99
+                    player.vie = Math.min(player.vie, player.maxVie);
+                    player.maxVie = Math.min(player.maxVie, 99);
+                    player.vie = Math.max(0, player.vie); // Empêche la vie négative d'être affichée si pas game over
+
+                    updateStatsUI();
                 }
-                gameState.currentMap.unshift(newRow); // Add new row to the beginning
-                gameState.currentMap.pop(); // Remove the last row
 
-                // Player's visual position stays at the same 'y' index
-                // but effectively moved up in the dungeon
-                newPlayerY = gameState.playerPosition.y; // Keep player visually in place (e.g., row 2)
-                mapContainer.style.transform = 'translateY(50px)'; // Move map down for smooth scroll effect
-                setTimeout(() => {
-                    renderMap();
-                    mapContainer.style.transition = 'none';
-                    mapContainer.style.transform = 'translateY(0)';
-                    // Re-enable transition after a brief delay
-                    setTimeout(() => {
-                        mapContainer.style.transition = 'transform 0.3s ease-out';
-                    }, 50);
-                }, 300); // Wait for the visual scroll to complete
-            } else if (newPlayerY >= 12) { // Player tries to go beyond the bottom edge
-                showModal("Impossible", "Vous ne pouvez pas reculer plus loin.");
-                return;
-            } else if (direction === 'down' && newPlayerY > gameState.playerPosition.y) {
-                 // When moving down, cells disappear from bottom, map doesn't scroll up
-                 // Just move the player's position if within bounds
-                 gameState.playerPosition.y = newPlayerY;
-                 updateCellContent(gameState.playerPosition.y - 1, gameState.playerPosition.x, { type: 'empty', icon: '' }); // Clear old player cell
-            } else {
-                // Normal move within the current map view
-                // Clear old player position
-                updateCellContent(gameState.playerPosition.y, gameState.playerPosition.x, { type: 'empty', icon: '' });
-                gameState.playerPosition.y = newPlayerY;
-            }
-
-            // Update player position on the map
-            updateCellContent(gameState.playerPosition.y, gameState.playerPosition.x, { type: 'player', icon: '🤠' });
-
-            // Trigger event if any
-            const cellUnderPlayer = gameState.currentMap[gameState.playerPosition.y][gameState.playerPosition.x];
-            if (cellUnderPlayer.type !== 'empty' && cellUnderPlayer.type !== 'player') {
-                triggerCellEvent(cellUnderPlayer);
-            }
-            renderMap();
-            updateDifficulty();
-            updateUI();
-        }
-
-        function updateCellContent(row, col, newContent) {
-            if (row >= 0 && row < 12 && col >= 0 && col < 7) {
-                gameState.currentMap[row][col] = newContent;
-            }
-        }
-
-        async function triggerCellEvent(cellContent) {
-            gameState.gamePhase = 'event';
-            gameState.currentEvent = cellContent; // Store the event details
-
-            let eventDescription;
-            if (cellContent.type === 'enemy') {
-                eventDescription = await generateEvent('ennemi', gameState.difficulty, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory);
-            } else if (cellContent.type === 'trap') {
-                eventDescription = await generateEvent('piège', gameState.difficulty, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory);
-            } else if (cellContent.type === 'item') {
-                eventDescription = `Vous trouvez un objet : ${cellContent.item.name} (${cellContent.item.type}). Voulez-vous le ramasser ?`;
-                showEventUI(eventDescription);
-                eventOptions.innerHTML = `
-                    <button class="p-2 rounded-lg" data-action="ramasser">Ramasser</button>
-                    <button class="p-2 rounded-lg" data-action="ignorer">Ignorer</button>
-                `;
-                return;
-            } else { // Contextual event or unknown
-                eventDescription = await generateEvent('événement contextuel', gameState.difficulty, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory);
-            }
-
-            showEventUI(eventDescription);
-        }
-
-        async function handleSubmitAction() {
-            const playerAction = playerActionInput.value.trim();
-            if (!playerAction) {
-                showModal("Action requise", "Veuillez entrer une action.");
-                return;
-            }
-
-            playerActionInput.value = ''; // Clear input field
-
-            const response = await resolvePlayerAction(playerAction, gameState.currentEvent, {hp: gameState.hp, maxHp: gameState.maxHp, attack: gameState.attack, agility: gameState.agility}, gameState.inventory, gameState.difficulty);
-
-            // Gérer les conséquences de l'action selon la réponse de l'IA
-            const lines = response.split('\n');
-            let message = '';
-            let eventResolved = false;
-
-            for (const line of lines) {
-                if (line.startsWith("DEGATS:")) {
-                    const damage = parseInt(line.split(":")[1].trim());
-                    gameState.hp -= damage;
-                    message += `Vous subissez ${damage} dégâts ! `;
-                } else if (line.startsWith("SOIN:")) {
-                    const heal = parseInt(line.split(":")[1].trim());
-                    gameState.hp = Math.min(gameState.maxHp, gameState.hp + heal);
-                    message += `Vous regagnez ${heal} PV. `;
-                } else if (line.startsWith("GAIN_OBJET:")) {
-                    const parts = line.split(":");
-                    const itemDetails = parts[1].split(",");
-                    const type = itemDetails[0].trim();
-                    const name = itemDetails[1].trim();
-                    const stat = itemDetails[2].trim();
-                    const value = parseInt(itemDetails[3].trim());
-                    const newItem = { name, type, stats: { [stat]: value } };
-
-                    let addedToInventory = false;
-                    if (type === 'food') {
-                        if (!gameState.inventory.food1) { gameState.inventory.food1 = newItem; addedToInventory = true; }
-                        else if (!gameState.inventory.food2) { gameState.inventory.food2 = newItem; addedToInventory = true; }
-                    } else if (type === 'weapon') {
-                        if (!gameState.inventory.weapon1) { gameState.inventory.weapon1 = newItem; addedToInventory = true; }
-                        else if (!gameState.inventory.weapon2) { gameState.inventory.weapon2 = newItem; addedToInventory = true; }
-                        else {
-                            // If both weapon slots are full, allow player to choose to swap
-                            // For simplicity now, just add to weapon1 if it's better
-                            if (newItem.stats.attack > (gameState.inventory.weapon1?.stats?.attack || 0)) {
-                                removeStatsFromItem(gameState.inventory.weapon1);
-                                gameState.inventory.weapon1 = newItem;
-                                applyStatsFromItem(newItem);
-                                addedToInventory = true;
-                            } else if (newItem.stats.attack > (gameState.inventory.weapon2?.stats?.attack || 0)) {
-                                removeStatsFromItem(gameState.inventory.weapon2);
-                                gameState.inventory.weapon2 = newItem;
-                                applyStatsFromItem(newItem);
-                                addedToInventory = true;
+                // Gérer l'inventaire (pour la trace locale, l'IA est la source de vérité)
+                if (parsedResponse.inventory_changes && Array.isArray(parsedResponse.inventory_changes)) {
+                    parsedResponse.inventory_changes.forEach(change => {
+                        if (change.action === "add") {
+                            player.inventory.push(change.item);
+                        } else if (change.action === "remove") {
+                            const index = player.inventory.indexOf(change.item);
+                            if (index > -1) {
+                                player.inventory.splice(index, 1);
                             }
                         }
-                    } else if (type === 'armor') {
-                        const slotMap = { head: 'head', chest: 'chest', legs: 'legs', arms: 'arms' };
-                        const targetSlot = slotMap[itemDetails[itemDetails.length - 1].trim()]; // Last part is slot for armor
-                        if (targetSlot && !gameState.inventory[targetSlot]) {
-                            gameState.inventory[targetSlot] = newItem;
-                            addedToInventory = true;
-                        } else if (targetSlot && newItem.stats.hp > (gameState.inventory[targetSlot]?.stats?.hp || 0)) {
-                             removeStatsFromItem(gameState.inventory[targetSlot]);
-                             gameState.inventory[targetSlot] = newItem;
-                             applyStatsFromItem(newItem);
-                             addedToInventory = true;
-                        }
-                    } else if (type === 'shield') {
-                        if (!gameState.inventory.weapon2) { // Shields can go in weapon2 slot
-                            gameState.inventory.weapon2 = newItem;
-                            addedToInventory = true;
-                        } else if (gameState.inventory.weapon2.type !== 'shield' || newItem.stats.agility > (gameState.inventory.weapon2?.stats?.agility || 0)) {
-                            removeStatsFromItem(gameState.inventory.weapon2);
-                            gameState.inventory.weapon2 = newItem;
-                            applyStatsFromItem(newItem);
-                            addedToInventory = true;
-                        }
-                    }
-
-                    if (addedToInventory) {
-                        message += `Vous avez trouvé et ramassé : ${newItem.name} ! `;
-                        applyStatsFromItem(newItem); // Apply stats immediately for new items
-                    } else {
-                        message += `Vous avez trouvé : ${newItem.name}, mais votre inventaire est plein ou l'objet n'est pas meilleur. `;
-                    }
-                } else if (line.startsWith("STATS_MODIFIEES:")) {
-                    const parts = line.split(":");
-                    const statDetails = parts[1].split(",");
-                    const statName = statDetails[0].trim();
-                    const statValue = parseInt(statDetails[1].trim());
-                    if (statName === 'hp') gameState.maxHp += statValue;
-                    else if (statName === 'attack') gameState.attack += statValue;
-                    else if (statName === 'agility') gameState.agility += statValue;
-                    message += `Vos ${statName} sont modifiées de ${statValue}. `;
-                } else if (line.startsWith("FIN_PARTIE:")) {
-                    gameOver(line.split(":")[1].trim());
-                    return; // Stop processing further
-                } else if (line.startsWith("FIN_EVENEMENT")) {
-                    eventResolved = true;
-                    gameState.eventsSurvived++;
-                    message += "L'événement est terminé. ";
-                } else if (line.startsWith("DEBUT_COMBAT:")) {
-                    const parts = line.split(":");
-                    const enemyInfo = parts[1].split(",");
-                    gameState.currentEvent = { type: 'enemy', name: enemyInfo[0].trim(), hp: parseInt(enemyInfo[1].trim().replace('PV', '')) };
-                    message += `Un combat commence avec ${gameState.currentEvent.name} (PV: ${gameState.currentEvent.hp}). `;
-                } else if (line.startsWith("CONTINUE_COMBAT:")) {
-                    const parts = line.split(", PV Ennemi:");
-                    message += `${parts[0].replace("CONTINUE_COMBAT:", "").trim()}. `;
-                    const enemyHp = parseInt(parts[1].trim());
-                    gameState.currentEvent.hp = enemyHp; // Update enemy HP
-                    if (enemyHp <= 0) {
-                        message += `L'ennemi ${gameState.currentEvent.name} est vaincu ! `;
-                        eventResolved = true; // Combat ends on victory
-                        gameState.eventsSurvived++;
-                    }
-                } else if (line.startsWith("VICTOIRE_COMBAT:")) {
-                    message += `${line.replace("VICTOIRE_COMBAT:", "").trim()}. L'ennemi est vaincu ! `;
-                    eventResolved = true;
-                } else if (line.startsWith("FUITE_REUSSIE:")) {
-                    message += `${line.replace("FUITE_REUSSIE:", "").trim()}. Vous vous échappez ! `;
-                    eventResolved = true;
-                } else if (line.startsWith("INGENIOSITE_RECOMPENSE:")) {
-                    message += `🌟 ${line.replace("INGENIOSITE_RECOMPENSE:", "").trim()} 🌟 `;
-                } else if (line.startsWith("DIFFICULTE_MODIFIEE:")) {
-                    const newDifficulty = parseInt(line.split(":")[1].trim());
-                    gameState.difficulty = Math.max(0, Math.min(25, newDifficulty)); // Clamp between 0 and 25
-                    message += `La difficulté du combat a été ajustée à ${gameState.difficulty}%. `;
+                    });
                 }
-                else {
-                    message += line.trim() + " "; // Add any narrative text
+
+                // Augmenter la difficulté si l'événement progresse
+                if (parsedResponse.next_event_ready && gameDifficulty < 25) {
+                    gameDifficulty = Math.min(25, gameDifficulty + 0.5); // Augmentation légère
                 }
-            }
 
-            eventText.innerHTML = message.replace(/\n/g, '<br>');
-            updateUI(); // Update UI after stat changes
-            checkHp(); // Check player HP after damage/heal
+                if (parsedResponse.image_prompt) {
+                    await updateGameImage(parsedResponse.image_prompt);
+                }
 
-            if (eventResolved) {
-                showModal("Événement Résolu", message, { ok: true }).then(() => {
-                    hideEventUI();
-                    gameState.gamePhase = 'map';
-                    // Clear the cell where the event was
-                    updateCellContent(gameState.playerPosition.y, gameState.playerPosition.x, { type: 'empty', icon: '' });
-                    renderMap();
-                });
+                if (parsedResponse.game_over || player.vie <= 0) {
+                    player.vie = 0; // Assurer que la vie est à 0 à la fin
+                    updateStatsUI();
+                    await gameOver();
+                } else if (parsedResponse.next_event_ready) {
+                    player.score++; // Augmenter le score pour chaque événement/combat terminé
+                    await continueGame(); // Passer au prochain événement
+                }
+            } catch (error) {
+                console.error("Erreur lors du traitement de l'action du joueur:", error);
+                updateMainText("Une erreur est survenue lors de l'analyse de votre action. Le jeu est bloqué, veuillez actualiser la page.");
+                showLoading(false);
+            } finally {
+                showLoading(false);
             }
         }
 
-        function checkHp() {
-            if (gameState.hp <= 0) {
-                gameState.hp = 0; // Ensure HP doesn't go negative on display
-                gameOver("Vos points de vie sont tombés à zéro. Vous avez succombé aux dangers du donjon.");
-            }
-        }
+        /**
+         * Appelle l'API Gemini Text.
+         * @param {Array} history - L'historique des messages pour l'API.
+         * @param {Object} generationConfig - Configuration de génération pour la réponse structurée (optionnel).
+         * @returns {Promise<string>} La réponse textuelle ou JSON de l'IA.
+         */
+        async function callGeminiTextAPI(history, generationConfig = {}) {
+            const payload = { contents: history, generationConfig: generationConfig };
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_TEXT_API_KEY}`;
 
-        function gameOver(reason) {
-            gameState.gamePhase = 'gameover';
-            showModal("Game Over", reason + `\n\nVous avez parcouru ${gameState.cellsTraversed} cases et survécu à ${gameState.eventsSurvived} événements. Votre score final est de ${gameState.cellsTraversed + gameState.eventsSurvived}.`, { ok: true }).then(() => {
-                saveScore(); // Tries to save score if it's a high score
-                showMainMenu(); // Return to main menu
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-        }
 
-        function updateDifficulty() {
-            // Difficulté augmente avec le nombre de cases parcourues et événements survécus
-            // Maximum de 25%
-            const baseDifficulty = (gameState.cellsTraversed * 0.05) + (gameState.eventsSurvived * 0.5);
-            gameState.difficulty = Math.min(25, Math.round(baseDifficulty));
-            console.log("Difficulté actuelle:", gameState.difficulty + "%");
-        }
+            const result = await response.json();
 
-        // --- Listeners d'événements ---
-        goreModeBtn.addEventListener('click', () => {
-            gameState.mode = 'gore';
-            applyTheme('gore');
-            // Remove selection from friendly
-            friendlyModeBtn.classList.remove('border-4', 'border-current');
-            goreModeBtn.classList.add('border-4', 'border-current');
-        });
-
-        friendlyModeBtn.addEventListener('click', () => {
-            gameState.mode = 'friendly';
-            applyTheme('friendly');
-            // Remove selection from gore
-            goreModeBtn.classList.remove('border-4', 'border-current');
-            friendlyModeBtn.classList.add('border-4', 'border-current');
-        });
-
-        // Initialize theme based on localStorage or default to gore
-        const savedMode = localStorage.getItem('generativusMode');
-        if (savedMode) {
-            gameState.mode = savedMode;
-            applyTheme(savedMode);
-            if (savedMode === 'gore') {
-                goreModeBtn.classList.add('border-4', 'border-current');
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                return result.candidates[0].content.parts[0].text;
             } else {
-                friendlyModeBtn.classList.add('border-4', 'border-current');
+                console.error("Réponse de l'API Gemini inattendue:", result);
+                throw new Error("Impossible d'obtenir une réponse de l'IA. Vérifiez la console pour plus de détails.");
             }
-        } else {
-            // Default to Gore mode if no saved mode
-            gameState.mode = 'gore';
-            goreModeBtn.classList.add('border-4', 'border-current');
         }
 
+        /**
+         * Gère la fin de partie (mort du joueur).
+         */
+        async function gameOver() {
+            showLoading(true, "Fin de partie...");
+            let message = `Votre aventure dans Generativus prend fin. Vous avez survécu à ${player.score} événements.`;
+            modalTitle.textContent = "FIN DE PARTIE !";
+            modalMessage.textContent = message;
 
-        // Start Game Button Logic (after mode selection)
-        playerNameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                startGame();
+            await saveScore(player.name, player.score, player.mode);
+            await showCustomModal("FIN DE PARTIE !", message, true); // Afficher les classements
+            showLoading(false);
+        }
+
+        /**
+         * Réinitialise l'état du jeu.
+         */
+        function resetGame() {
+            player = {
+                name: '',
+                att: 5,
+                vie: 20,
+                maxVie: 20,
+                agi: 1,
+                inventory: [],
+                score: 0,
+                mode: ''
+            };
+            gameDifficulty = 0;
+            gameStarted = false;
+            chatHistory = [];
+            document.body.classList.remove('friendly-mode');
+            mainTextDiv.innerHTML = ''; // Nettoyer le texte
+            gameImage.src = ''; // Nettoyer l'image
+            playerInput.value = '';
+            playerInput.placeholder = "Votre nom et mode (Ex: Arthur Mode Gore)";
+            updateStatsUI();
+        }
+
+        /**
+         * Enregistre le score du joueur dans Firestore si c'est un top 5.
+         * @param {string} name - Nom du joueur.
+         * @param {number} score - Score du joueur.
+         * @param {string} mode - Mode de jeu ('Gore' ou 'Amical').
+         */
+        async function saveScore(name, score, mode) {
+            if (!authReady || !db || !userId) {
+                console.warn("Firestore non prêt, score non enregistré.");
+                return;
             }
-        });
-        goreModeBtn.addEventListener('click', () => {
-            gameState.mode = 'gore';
-            applyTheme('gore');
-            startGame();
-        });
-        friendlyModeBtn.addEventListener('click', () => {
-            gameState.mode = 'friendly';
-            applyTheme('friendly');
-            startGame();
-        });
+            try {
+                const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboards`, mode.toLowerCase());
+                const leaderboardSnap = await getDoc(leaderboardDocRef);
 
-
-        // Game UI Button Listeners
-        moveUpBtn.addEventListener('click', () => movePlayer('up'));
-        moveDownBtn.addEventListener('click', () => movePlayer('down'));
-        submitActionButton.addEventListener('click', handleSubmitAction);
-        playerActionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                handleSubmitAction();
-            }
-        });
-
-        eventOptions.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                playerActionInput.value = e.target.dataset.action;
-                handleSubmitAction();
-            }
-        });
-
-        returnToMenuBtn.addEventListener('click', () => {
-            showModal("Retour au Menu", "Voulez-vous vraiment retourner au menu principal ? Votre progression actuelle sera perdue.", { confirm: true, cancel: true }).then(result => {
-                if (result) {
-                    showMainMenu();
+                let scores = [];
+                if (leaderboardSnap.exists()) {
+                    scores = leaderboardSnap.data().topScores || [];
                 }
-            });
-        });
 
-        // Initialisation de Firebase une fois que le DOM est chargé
+                scores.push({ name: name, score: score, timestamp: Date.now(), userId: userId });
+
+                // Trier et garder seulement les 5 meilleurs scores
+                scores.sort((a, b) => b.score - a.score);
+                scores = scores.slice(0, 5);
+
+                await setDoc(leaderboardDocRef, { topScores: scores });
+                console.log("Score enregistré avec succès !");
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement du score:", error);
+                showCustomModal("Erreur de sauvegarde", "Impossible d'enregistrer votre score dans le classement.");
+            }
+        }
+
+        /**
+         * Affiche les classements depuis Firestore.
+         */
+        async function displayLeaderboards() {
+            if (!authReady || !db || !userId) {
+                console.warn("Firestore non prêt, impossible d'afficher les classements.");
+                leaderboardsDisplay.innerHTML = '<p>Classements non disponibles.</p>';
+                return;
+            }
+
+            leaderboardsDisplay.innerHTML = ''; // Nettoyer l'affichage précédent
+            showLoading(true, "Chargement des classements...");
+
+            const modes = ['gore', 'amical'];
+            for (const mode of modes) {
+                try {
+                    const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboards`, mode);
+                    const leaderboardSnap = await getDoc(leaderboardDocRef);
+
+                    let scores = [];
+                    if (leaderboardSnap.exists()) {
+                        scores = leaderboardSnap.data().topScores || [];
+                    }
+
+                    const section = document.createElement('div');
+                    section.classList.add('leaderboard-section');
+                    section.innerHTML = `<h3>Mode ${mode.charAt(0).toUpperCase() + mode.slice(1)}</h3><ol></ol>`;
+                    const ol = section.querySelector('ol');
+
+                    if (scores.length === 0) {
+                        ol.innerHTML = '<li>Aucun score enregistré.</li>';
+                    } else {
+                        scores.forEach((s, index) => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `<span>${index + 1}. ${s.name}</span> <span class="score-value">${s.score}</span>`;
+                            ol.appendChild(li);
+                        });
+                    }
+                    leaderboardsDisplay.appendChild(section);
+
+                } catch (error) {
+                    console.error(`Erreur lors du chargement du classement ${mode}:`, error);
+                    const section = document.createElement('div');
+                    section.classList.add('leaderboard-section');
+                    section.innerHTML = `<h3>Mode ${mode.charAt(0).toUpperCase() + mode.slice(1)}</h3><p>Erreur de chargement.</p>`;
+                    leaderboardsDisplay.appendChild(section);
+                }
+            }
+            showLoading(false);
+        }
+
+        // Initialisation à l'ouverture de la page
         window.onload = initializeFirebase;
     </script>
 </body>
