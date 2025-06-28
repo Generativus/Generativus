@@ -419,8 +419,8 @@
     <script type="module">
         // Import des modules Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, onSnapshot, collection, query, where, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous et la ligne correspondante dans initializeFirebase()
         // import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
@@ -432,10 +432,6 @@
         let userId;
         let isAuthReady = false;
 
-        // Récupération de l'ID de l'application (pour Firebase Firestore paths)
-        // 'default-generativus-app' est utilisé si le jeu n'est pas exécuté dans un environnement Canvas
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-generativus-app';
-
         // Configuration Firebase (fournie par l'utilisateur)
         const firebaseConfig = {
             apiKey: "AIzaSyDuEm2htptr7pY_EnFoEJPmUOYhKzYC9pE",
@@ -446,10 +442,13 @@
             appId: "1:853953342399:web:433b07d4396a136a60cf0a",
             measurementId: "G-KE0ZEXWBPR"
         };
-        // Jeton d'authentification initial pour l'environnement Canvas
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Clé API Gemini (vide car injectée par l'environnement Canvas)
+        // Récupération de l'ID de l'application (pour Firebase Firestore paths)
+        // Utilise le projectId de firebaseConfig pour assurer la compatibilité
+        const appId = firebaseConfig.projectId;
+
+        // La clé API Gemini est injectée par l'environnement Canvas.
+        // Laisser vide ici.
         const GEMINI_API_KEY = "";
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
@@ -498,61 +497,83 @@
         const mapContainer = document.getElementById('mapContainer');
         const eventBox = document.getElementById('eventBox');
         const eventText = document.getElementById('eventText');
-        const eventOptions = document.getElementById('eventOptions');
         const playerActionInput = document.getElementById('playerActionInput');
         const submitActionButton = document.getElementById('submitActionButton');
         const moveUpBtn = document.getElementById('moveUpBtn');
         const moveDownBtn = document.getElementById('moveDownBtn');
         const returnToMenuBtn = document.getElementById('returnToMenuBtn');
+        const eventOptions = document.getElementById('eventOptions');
 
-        const modal = document.getElementById('modal');
-        const modalContent = document.getElementById('modalContent');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        const modalOkBtn = document.getElementById('modalOkBtn');
-        const loadingOverlay = document.getElementById('loadingOverlay');
 
-        // --- Fonctions d'initialisation Firebase ---
-        async function initializeFirebase() {
-            // Appeler initializeApp avec la configuration Firebase fournie
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous
-            // const analytics = getAnalytics(app);
+        // --- Fonctions d'interface utilisateur (déclarées en premier pour éviter les erreurs de référence) ---
+        function showMainMenu() {
+            gameUI.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            gameState.gamePhase = 'menu';
+            // fetchLeaderboards() est appelé ici
+            fetchLeaderboards();
+            applyTheme(localStorage.getItem('generativusMode') || 'gore');
+        }
 
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    console.log("Firebase user ID:", userId);
-                } else {
-                    // Sign in anonymously if no user is authenticated
-                    try {
-                        if (initialAuthToken) {
-                            await signInWithCustomToken(auth, initialAuthToken);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                        userId = auth.currentUser.uid;
-                        console.log("Signed in anonymously. User ID:", userId);
-                    } catch (error) {
-                        console.error("Firebase authentication error:", error);
-                        showModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Veuillez recharger la page.");
-                    }
-                }
-                isAuthReady = true;
-                // Une fois authentifié, afficher le menu principal et charger les classements
-                displayMainMenu();
-                fetchLeaderboards();
+        function showGameUI() {
+            mainMenu.classList.add('hidden');
+            gameUI.classList.remove('hidden');
+            gameState.gamePhase = 'map';
+            renderMap();
+            updateUI();
+            applyTheme(gameState.mode);
+        }
+
+        function showEventUI(text) {
+            mapContainer.classList.add('hidden');
+            moveUpBtn.classList.add('hidden');
+            moveDownBtn.classList.add('hidden');
+            eventBox.classList.remove('hidden');
+            eventText.innerHTML = text.replace(/\n/g, '<br>'); // Permet les retours à la ligne
+            playerActionInput.value = '';
+            playerActionInput.focus();
+            eventOptions.innerHTML = ''; // Efface les options précédentes
+        }
+
+        function hideEventUI() {
+            eventBox.classList.add('hidden');
+            mapContainer.classList.remove('hidden');
+            moveUpBtn.classList.remove('hidden');
+            moveDownBtn.classList.remove('hidden');
+        }
+
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        function showModal(title, message, options = { confirm: false, cancel: false, ok: true }) {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message; // Utilise innerHTML pour les balises <br>
+            modalConfirmBtn.classList.toggle('hidden', !options.confirm);
+            modalCancelBtn.classList.toggle('hidden', !options.cancel);
+            modalOkBtn.classList.toggle('hidden', !options.ok);
+            modal.classList.remove('hidden');
+            return new Promise(resolve => {
+                modalConfirmBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); };
+                modalCancelBtn.onclick = () => { modal.classList.add('hidden'); resolve(false); };
+                modalOkBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); }; // OK acts as confirm for simplicity
             });
         }
 
-        // --- Fonctions Firestore pour les classements ---
+        function applyTheme(mode) {
+            document.body.className = ''; // Reset classes
+            document.body.classList.add(`mode-${mode}`);
+            localStorage.setItem('generativusMode', mode);
+        }
+
+        // --- Fonctions Firestore pour les classements (déclarées en second car appelées par UI functions) ---
         async function fetchLeaderboards() {
             if (!isAuthReady || !db) {
-                console.log("Firestore not ready, skipping leaderboard fetch.");
+                console.log("Firestore pas prêt, saut du chargement des classements.");
                 return;
             }
 
@@ -593,18 +614,18 @@
                 ulElement.innerHTML = '<li>Aucun score enregistré.</li>';
                 return;
             }
-            snapshot.forEach((doc, index) => {
+            snapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
                 li.className = 'py-1 border-b last:border-b-0';
-                li.textContent = `${index + 1}. ${data.playerName}: ${data.score} points`;
+                li.textContent = `${data.playerName}: ${data.score} points`;
                 ulElement.appendChild(li);
             });
         }
 
         async function saveScore() {
             if (!isAuthReady || !db || !userId) {
-                console.log("Firestore not ready or user not authenticated, skipping score save.");
+                console.log("Firestore pas prêt ou utilisateur non authentifié, saut de la sauvegarde du score.");
                 return;
             }
 
@@ -647,6 +668,50 @@
             }
         }
 
+
+        // --- Fonctions d'initialisation Firebase (déclarées après les fonctions UI/Firestore qu'elles appellent) ---
+        async function initializeFirebase() {
+            try {
+                // Initialise l'application Firebase avec votre configuration
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                // Si vous souhaitez utiliser Firebase Analytics, décommentez la ligne ci-dessous
+                // const analytics = getAnalytics(app);
+
+                // Gère les changements d'état d'authentification
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        // Si un utilisateur est déjà authentifié
+                        userId = user.uid;
+                        console.log("Firebase user ID:", userId);
+                        isAuthReady = true; // L'authentification est prête
+                        showMainMenu(); // Appel de displayMainMenu ICI
+                        // fetchLeaderboards() est appelé à l'intérieur de showMainMenu
+                    } else {
+                        // Si aucun utilisateur n'est authentifié, tente une connexion anonyme
+                        try {
+                            await signInAnonymously(auth);
+                            userId = auth.currentUser.uid;
+                            console.log("Connecté anonymement. ID utilisateur:", userId);
+                            isAuthReady = true; // L'authentification est prête
+                            showMainMenu(); // Appel de displayMainMenu ICI
+                        } catch (error) {
+                            console.error("Firebase authentication error during anonymous sign-in:", error);
+                            // Affiche une erreur modale et ne continue pas si l'authentification échoue
+                            showModal("Erreur d'authentification", "Impossible de se connecter à Firebase. Veuillez vérifier :<br>1. Votre configuration Firebase (apiKey, projectId, etc.).<br>2. Que le fournisseur d'authentification 'Anonymous' est bien activé dans votre console Firebase (section Authentication -> Sign-in method).<br>3. Que vos règles Firestore autorisent la lecture/écriture pour les classements.");
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Erreur d'initialisation de l'application Firebase (initializeApp):", error);
+                // Affiche une erreur modale si initializeApp échoue (ex: mauvaise config)
+                showModal("Erreur d'initialisation de l'application", "La configuration Firebase est incorrecte ou inaccessible. Veuillez vérifier vos clés API et l'ID de votre projet.");
+            }
+        }
+
+
         // --- Fonctions de l'API Gemini ---
         async function callGemini(prompt, history = []) {
             showLoading();
@@ -662,7 +727,7 @@
                 const payload = {
                     contents: chatHistory,
                 };
-                console.log("Sending to Gemini:", payload);
+                console.log("Envoi à Gemini:", payload);
 
                 const response = await fetch(GEMINI_API_URL, {
                     method: 'POST',
@@ -670,7 +735,7 @@
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
-                console.log("Received from Gemini:", result);
+                console.log("Réponse de Gemini:", result);
 
                 if (result.candidates && result.candidates.length > 0 &&
                     result.candidates[0].content && result.candidates[0].content.parts &&
@@ -768,69 +833,6 @@
             return callGemini(prompt, gameState.dialogHistory);
         }
 
-        // --- Fonctions d'interface utilisateur ---
-        function showMainMenu() {
-            gameUI.classList.add('hidden');
-            mainMenu.classList.remove('hidden');
-            gameState.gamePhase = 'menu';
-            fetchLeaderboards(); // Actualise les classements à chaque retour au menu
-            applyTheme(localStorage.getItem('generativusMode') || 'gore');
-        }
-
-        function showGameUI() {
-            mainMenu.classList.add('hidden');
-            gameUI.classList.remove('hidden');
-            gameState.gamePhase = 'map';
-            renderMap();
-            updateUI();
-            applyTheme(gameState.mode);
-        }
-
-        function showEventUI(text) {
-            mapContainer.classList.add('hidden');
-            moveUpBtn.classList.add('hidden');
-            moveDownBtn.classList.add('hidden');
-            eventBox.classList.remove('hidden');
-            eventText.innerHTML = text.replace(/\n/g, '<br>'); // Permet les retours à la ligne
-            playerActionInput.value = '';
-            playerActionInput.focus();
-            eventOptions.innerHTML = ''; // Efface les options précédentes
-        }
-
-        function hideEventUI() {
-            eventBox.classList.add('hidden');
-            mapContainer.classList.remove('hidden');
-            moveUpBtn.classList.remove('hidden');
-            moveDownBtn.classList.remove('hidden');
-        }
-
-        function showLoading() {
-            loadingOverlay.classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            loadingOverlay.classList.add('hidden');
-        }
-
-        function showModal(title, message, options = { confirm: false, cancel: false, ok: true }) {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            modalConfirmBtn.classList.toggle('hidden', !options.confirm);
-            modalCancelBtn.classList.toggle('hidden', !options.cancel);
-            modalOkBtn.classList.toggle('hidden', !options.ok);
-            modal.classList.remove('hidden');
-            return new Promise(resolve => {
-                modalConfirmBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); };
-                modalCancelBtn.onclick = () => { modal.classList.add('hidden'); resolve(false); };
-                modalOkBtn.onclick = () => { modal.classList.add('hidden'); resolve(true); }; // OK acts as confirm for simplicity
-            });
-        }
-
-        function applyTheme(mode) {
-            document.body.className = ''; // Reset classes
-            document.body.classList.add(`mode-${mode}`);
-            localStorage.setItem('generativusMode', mode);
-        }
 
         // --- Fonctions de jeu ---
         function startGame() {
@@ -895,7 +897,7 @@
                     if (slotType.startsWith('food')) icon = '🍎';
                     else if (slotType.includes('weapon')) icon = '⚔️';
                     else if (slotType.includes('head')) icon = '🎩';
-                    else if (slotType.includes('chest')) icon = '�';
+                    else if (slotType.includes('chest')) icon = '👕';
                     else if (slotType.includes('legs')) icon = '👖';
                     else if (slotType.includes('arms')) icon = '🧤';
                 } else {
@@ -1470,4 +1472,3 @@
     </script>
 </body>
 </html>
-�
