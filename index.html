@@ -68,14 +68,50 @@
             height: 100%;
             object-fit: contain; /* Assure que l'image s'adapte sans être coupée */
             image-rendering: pixelated; /* Pour un rendu pixel art net */
+            display: none; /* Cache l'image par défaut au chargement */
         }
 
-        /* Indicateur de chargement pour l'image */
-        #image-loading-indicator {
-            position: absolute;
-            color: #fff;
-            font-size: 1.2em;
-            display: none; /* Masqué par défaut */
+        /* Indicateur de chargement global, maintenant localisé à l'image */
+        #loading-overlay {
+            position: absolute; /* Positionnement par rapport au parent #game-image-container */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9); /* Fond noir semi-transparent */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5em;
+            z-index: 100; /* Plus haut que l'image pour la couvrir */
+            opacity: 0; /* Commence transparent, contrôlé par JS */
+            transition: opacity 0.3s ease-out; /* Transition pour une disparition douce */
+            pointer-events: none; /* Permet le clic à travers quand invisible */
+        }
+
+        #loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto; /* Bloque le clic quand visible */
+        }
+
+        #loading-overlay p {
+            margin-top: 10px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Section des statistiques de l'ennemi (fixe sous l'image - sera masquée) */
@@ -261,40 +297,6 @@
             color: inherit; /* Hérite de la couleur du corps */
         }
 
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 1.5em;
-            z-index: 2000;
-        }
-
-        #loading-overlay p {
-            margin-top: 10px;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Responsive adjustments */
         @media (max-width: 480px) {
             body {
@@ -317,12 +319,6 @@
     </style>
 </head>
 <body>
-    <!-- Overlay de chargement -->
-    <div id="loading-overlay" style="display: none;">
-        <div class="spinner"></div>
-        <p>Interprétation...</p>
-    </div>
-
     <div id="game-container">
         <!-- Statistiques du joueur -->
         <div id="stats">
@@ -334,7 +330,11 @@
         <!-- Zone de l'image (fixe) -->
         <div id="game-image-container">
             <img id="game-image" src="" alt="Image de jeu">
-            <div id="image-loading-indicator">Chargement de l'image...</div>
+            <!-- Overlay de chargement déplacé ici -->
+            <div id="loading-overlay" style="display: none;">
+                <div class="spinner"></div>
+                <p id="loading-message">Interprétation...</p>
+            </div>
         </div>
 
         <!-- Section des statistiques de l'ennemi (masquée - reste dans le DOM mais cachée par display:none) -->
@@ -433,16 +433,13 @@
         const playerAgiSpan = document.getElementById('player-agi');
         const scrollableContent = document.getElementById('scrollable-content'); // Maintenu pour le texte
         const gameImage = document.getElementById('game-image');
-        const imageLoadingIndicator = document.getElementById('image-loading-indicator');
-        // Supprime les références aux éléments des stats ennemies
-        // const enemyStatsDisplay = document.getElementById('enemy-stats');
-        // const enemyNameSpan = document.getElementById('enemy-name');
-        // const enemyAttSpan = document.getElementById('enemy-att');
-        // const enemyHpSpan = document = document.getElementById('enemy-hp');
+        const loadingOverlay = document.getElementById('loading-overlay'); // Référence à l'overlay principal
+        const loadingMessage = document.getElementById('loading-message'); // Référence au texte de l'overlay
+
         const mainTextDiv = document.getElementById('main-text');
         const playerInput = document.getElementById('player-input');
         const sendButton = document.getElementById('send-button');
-        const loadingOverlay = document.getElementById('loading-overlay');
+
         const customModal = document.getElementById('custom-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
@@ -455,10 +452,27 @@
          * Affiche ou masque l'overlay de chargement.
          * @param {boolean} show - True pour afficher, false pour masquer.
          * @param {string} message - Message à afficher pendant le chargement.
+         * @param {function} callback - Fonction à exécuter une fois le masquage terminé.
          */
-        function showLoading(show, message = "Interprétation...") {
-            loadingOverlay.style.display = show ? 'flex' : 'none';
-            loadingOverlay.querySelector('p').textContent = message;
+        function showLoading(show, message = "Interprétation...", callback = null) {
+            if (show) {
+                loadingOverlay.style.display = 'flex';
+                // Utilise requestAnimationFrame pour s'assurer que display est appliqué avant la transition
+                requestAnimationFrame(() => {
+                    loadingOverlay.classList.add('active');
+                });
+                loadingMessage.textContent = message;
+            } else {
+                loadingOverlay.classList.remove('active');
+                // Écoute la fin de la transition pour masquer l'élément complètement
+                loadingOverlay.addEventListener('transitionend', function handler() {
+                    loadingOverlay.style.display = 'none';
+                    if (callback) {
+                        callback(); // Exécute le callback après la disparition complète
+                    }
+                    loadingOverlay.removeEventListener('transitionend', handler);
+                }, { once: true });
+            }
         }
 
         /**
@@ -556,21 +570,6 @@
             playerAgiSpan.textContent = `AGI: ${player.agi}`;
         }
 
-        // Supprime la fonction displayEnemyStats car les stats ennemies ne sont plus affichées
-        /*
-        function displayEnemyStats(enemy) {
-            if (enemy) {
-                enemyNameSpan.textContent = enemy.name || 'Ennemi';
-                enemyAttSpan.textContent = `ATT: ${enemy.att || 0}`;
-                enemyHpSpan.textContent = `VIE: ${enemy.vie || 0}`;
-                enemyAgiSpan.textContent = `AGI: ${enemy.agi || 0}`;
-                enemyStatsDisplay.style.display = 'flex';
-            } else {
-                enemyStatsDisplay.style.display = 'none';
-            }
-        }
-        */
-
         /**
          * Met à jour le texte principal affiché dans le jeu, avec une logique de défilement améliorée.
          * @param {string} text - Le texte à afficher.
@@ -606,15 +605,14 @@
          * @param {string} imagePrompt - Le prompt pour la génération d'image.
          */
         async function updateGameImage(imagePrompt) {
-            gameImage.style.opacity = 0; // Masque l'image précédente
-            imageLoadingIndicator.style.display = 'block'; // Affiche l'indicateur
+            gameImage.style.display = 'none'; // Cache l'image pour s'assurer qu'elle est couverte
             gameImage.src = ''; // Efface l'image précédente
+            showLoading(true, "Chargement de l'image..."); // Affiche l'overlay de chargement sur la zone de l'image
 
             if (!GEMINI_IMAGE_API_KEY) {
                 console.error("Clé API Gemini Image manquante. Impossible de générer des images.");
-                gameImage.src = `https://placehold.co/400x225/FF0000/FFFFFF?text=CLE+API+IMAGE+MANQUANTE`;
-                imageLoadingIndicator.style.display = 'none';
-                gameImage.style.opacity = 1;
+                // Dans ce cas d'erreur, on veut que le message de chargement persiste
+                showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
                 showCustomModal("Erreur API Image", "La clé API Gemini Image est manquante. Veuillez la renseigner dans le code pour que les images s'affichent.");
                 return;
             }
@@ -644,25 +642,23 @@
                     const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
                     gameImage.src = imageUrl;
                     gameImage.onload = () => {
-                        imageLoadingIndicator.style.display = 'none';
-                        gameImage.style.opacity = 1; // Révèle la nouvelle image
+                        gameImage.style.display = 'block'; // Révèle l'image une fois chargée
+                        showLoading(false); // Masque l'indicateur
                     };
                     gameImage.onerror = () => {
                         console.error("Erreur de chargement de l'image. Tentative de placeholder.");
-                        gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
-                        imageLoadingIndicator.style.display = 1;
+                        // En cas d'erreur de chargement de l'image, on garde l'overlay actif
+                        showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
                     };
                 } else {
                     console.error("Réponse de l'API Image inattendue:", result);
-                    gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
-                    imageLoadingIndicator.style.display = 'none';
-                    gameImage.style.opacity = 1;
+                    // Si la réponse de l'API est inattendue, on garde l'overlay actif
+                    showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
                 }
             } catch (error) {
                 console.error("Erreur lors de la génération d'image:", error);
-                gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Erreur+Image`;
-                imageLoadingIndicator.style.display = 'none';
-                gameImage.style.opacity = 1;
+                // Si une erreur générale survient, on garde l'overlay actif
+                showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
             }
         }
 
@@ -673,10 +669,9 @@
             gameStarted = false;
             mainTextDiv.innerHTML = 'Bienvenue dans Generativus ! Un monde généré de manière dynamique.<br>Entrez votre nom pour commencer.'; // Texte d'intro simplifié
             updateStatsUI();
-            // displayEnemyStats(null); // Fonction supprimée, plus besoin de l'appeler ici
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             // Afficher l'image du menu principal
-            await updateGameImage("gloomy dungeon, scary, title Generativus");
+            await updateGameImage("gloomy dungeon, Castlevania style, main menu, title Generativus");
             sendButton.onclick = handleMainMenuInput; // Attacher le gestionnaire pour le menu
             playerInput.onkeypress = (e) => {
                 if (e.key === 'Enter') handleMainMenuInput();
@@ -707,7 +702,6 @@
             player.vie = player.maxVie; // Réinitialise la vie
             player.score = 0;
             gameDifficulty = 0; // Difficultité initiale
-            // currentEnemy = null; // Variable currentEnemy retirée
             updateStatsUI();
             player.mode = 'Gore'; // Force le mode à Gore
             document.body.classList.remove('friendly-mode'); // Assure que c'est toujours le mode Gore
@@ -839,9 +833,6 @@
                     });
                 }
 
-                // currentEnemy n'est plus géré ici
-                // displayEnemyStats(currentEnemy);
-
                 if (parsedResponse.image_prompt) {
                     await updateGameImage(parsedResponse.image_prompt);
                 }
@@ -851,7 +842,9 @@
                 console.error("Erreur lors de la continuation du jeu:", error);
                 updateMainText("Une erreur est survenue, le donjon semble instable. Veuillez réessayer. Détails: " + error.message);
             } finally {
-                showLoading(false);
+                // Seulement masquer l'overlay si tout s'est bien passé jusqu'à la mise à jour de l'image
+                // S'il y a une erreur dans updateGameImage, l'overlay reste visible
+                // showLoading(false); // Commenté car géré par updateGameImage ou les blocs d'erreur spécifiques.
             }
         }
 
@@ -890,11 +883,11 @@
                 * Ajoutez \`{"action": "remove", "item": "Nom de l'arme"}\` à 'inventory_changes'.
                 * Augmentez l'ATT de 1 à 3 points dans 'stat_changes'. Les bonus de +3 ATT sont rares.
             * Si le joueur équipe une armure (ex: "mettre le plastron", "porter le casque"):
-                * Assurez-vous que l'objet est dans l'inventaire.
+                * Assurez- Vous que l'objet est dans l'inventaire.
                 * Ajoutez \`{"action": "remove", "item": "Nom de l'armure"}\` à 'inventory_changes'.
                 * Augmentez UNE SEULE statistique (ATT, VIE max, ou AGI) de 1 à 3 points dans 'stat_changes'. Les bonus de +3 sont rares.
             * Si de nouveaux objets sont trouvés suite à cette action, ajoutez-les avec \`{"action": "add", "item": "Nom de l'objet"}\` dans 'inventory_changes'.
-            * **TRÈS IMPORTANT:** Toute modification de statistiques ou d'inventaire DOIT se faire UNIQUEMENT via les champs 'stat_changes' et 'inventory_changes' du JSON, PAS dans le texte narratif (sauf pour lister l'inventaire). La vie maximum (VIE max) ne doit jamais dépasser 99.
+            * **TRÈS IMPORTANT:** Toute modification de statistiques ou d'inventaire DOIT se faire UNIQUEMENT via les champs 'stat_changes' et 'inventory_changes' du JSON, PAS dans le texte narratif (sauf pour l'inventaire). La vie maximum (VIE max) ne doit jamais dépasser 99.
 
             **Format de réponse attendu (JSON):**
             \`\`\`json
@@ -998,9 +991,6 @@
                     });
                 }
 
-                // currentEnemy n'est plus géré ici
-                // displayEnemyStats(currentEnemy);
-
                 // Augmenter la difficulté si l'événement progresse
                 if (parsedResponse.next_event_ready && gameDifficulty < 25) {
                     gameDifficulty = Math.min(25, gameDifficulty + 0.5);
@@ -1022,7 +1012,7 @@
                 console.error("Erreur lors du traitement de l'action du joueur:", error);
                 updateMainText("Une erreur est survenue lors de l'analyse de votre action. Le jeu est bloqué, veuillez actualiser la page. Détails: " + error.message);
             } finally {
-                showLoading(false);
+                // showLoading(false); // Commenté car géré par updateGameImage ou les blocs d'erreur spécifiques.
             }
         }
 
@@ -1083,7 +1073,6 @@
                 score: 0,
                 mode: 'Gore' // Toujours en mode Gore
             };
-            // currentEnemy = null; // currentEnemy retiré
             gameDifficulty = 0;
             gameStarted = false;
             chatHistory = [];
@@ -1093,7 +1082,6 @@
             playerInput.value = '';
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             updateStatsUI();
-            // displayEnemyStats(null); // Fonction displayEnemyStats retirée
             lastPlayerMessageElement = null; // Réinitialiser la référence à l'élément du message du joueur
         }
 
@@ -1189,3 +1177,4 @@
     </script>
 </body>
 </html>
+
