@@ -378,14 +378,10 @@
 
         // ==============================================================================
         // CONFIGURATION FIREBASE POUR DÉPLOIEMENT HORS CANVAS (ex: GitHub Pages)
-        // Si vous déployez sur GitHub Pages, vous devrez remplir ces informations.
-        // 1. Allez sur votre projet Firebase (console.firebase.google.com).
-        // 2. Cliquez sur "Paramètres du projet" (l'engrenage à côté de "Présentation du projet").
-        // 3. Dans l'onglet "Général", faites défiler jusqu'à "Vos applications" et choisissez votre application web.
-        // 4. Copiez l'objet "firebaseConfig".
-        // 5. Remplacez le contenu de `YOUR_FIREBASE_CONFIG_HERE` ci-dessous.
+        // L'ID de l'application Firestore pour les classements. DOIT ÊTRE UNIQUE ET FIXE
+        // pour que tous les joueurs se connectent au même classement global.
         // ==============================================================================
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // 'default-app-id' si non en Canvas
+        const appId = 'generativus-global-leaderboard'; // ID fixe pour le classement global
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDuEm2htptr7pY_EnFoEJPmUOYhKzYC9pE",
             authDomain: "generativus-b65cb.firebaseapp.com",
@@ -398,12 +394,13 @@
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // ==============================================================================
-        // CONFIGURATION DES CLÉS API GEMINI POUR DÉPLOIEMENT HORS CANVAS (ex: GitHub Pages)
-        // Vous devez obtenir ces clés depuis Google AI Studio (aistudio.google.com/app/apikey).
-        // Créez une nouvelle clé API et collez-la ci-dessous pour chaque API.
+        // CONFIGURATION DES CLÉS API GEMINI
+        // Ces clés sont utilisées pour les appels aux modèles Gemini.
+        // Elles ont été restaurées à partir de votre fichier d'origine.
         // ==============================================================================
-        const GEMINI_TEXT_API_KEY = "AIzaSyBBRm5QNpoiz4UeFLN-ARuGDFpXjhTeWP0";
-        const GEMINI_IMAGE_API_KEY = "AIzaSyA1lOo6sFFDhy2jtzWJgh33rcVoTDQ07C4";
+        const GEMINI_TEXT_API_KEY = "AIzaSyBBRm5QNpoiz4UeFLN-ARuGDFpXjhTeWP0"; // Renseignée à partir de votre fichier d'origine
+        const GEMINI_IMAGE_API_KEY = "AIzaSyA1lOo6sFFDhy2jtzWJgh33rcVoTDQ07C4"; // Renseignée à partir de votre fichier d'origine
+
 
         // Variables globales du jeu
         let player = {
@@ -505,7 +502,7 @@
          */
         async function initializeFirebase() {
             try {
-                // Vérifier si une configuration Firebase valide est présente
+                // Vérifier si une configuration Firebase valide est présente (pas la config par défaut ou manquante)
                 if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
                     console.warn("Firebase configuration manquante ou par défaut. Les fonctionnalités Firestore et Auth ne seront pas disponibles en dehors de l'environnement Canvas.");
                     showCustomModal("Configuration Firebase", "La configuration Firebase n'est pas complète. Les classements ne seront pas sauvegardés ni affichés en dehors de l'environnement Canvas. Veuillez consulter le code pour ajouter votre configuration.");
@@ -609,17 +606,11 @@
             gameImage.src = ''; // Efface l'image précédente
             showLoading(true, "Chargement de l'image..."); // Affiche l'overlay de chargement sur la zone de l'image
 
-            if (!GEMINI_IMAGE_API_KEY) {
-                console.error("Clé API Gemini Image manquante. Impossible de générer des images.");
-                // Dans ce cas d'erreur, on veut que le message de chargement persiste
-                showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
-                showCustomModal("Erreur API Image", "La clé API Gemini Image est manquante. Veuillez la renseigner dans le code pour que les images s'affichent.");
-                return;
-            }
+            const apiKey = GEMINI_IMAGE_API_KEY; // Utilise la clé API de la variable globale
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
 
             try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_IMAGE_API_KEY}`;
-
                 const payload = {
                     instances: {
                         // Prompt amélioré pour le style (toujours gore) et le ratio 16:9 strict
@@ -722,21 +713,14 @@
         async function generateBackstory() {
             showLoading(true, "Interprétation..."); // Message de chargement modifié
 
-            if (!GEMINI_TEXT_API_KEY) {
-                console.error("Clé API Gemini Texte manquante. Impossible de générer l'histoire.");
-                mainTextDiv.innerHTML = '';
-                updateMainText("La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
-                showLoading(false);
-                showCustomModal("Erreur API Texte", "La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
-                return;
-            }
+            const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
             const prompt = `Génère une brève backstory pour vous, un personnage nommé ${player.name}, qui êtes sur le point d'entrer dans un donjon appelé Generativus. Le ton doit être horrifiant et sombre. Sois très concis, juste un court paragraphe.`;
 
             chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
 
             try {
-                const response = await callGeminiTextAPI(chatHistory);
+                const response = await callGeminiTextAPI(chatHistory, { apiKey: apiKey });
                 updateMainText(response); // C'est le premier texte généré, il se défilera au début.
                 chatHistory.push({ role: "model", parts: [{ text: response }] });
                 await continueGame();
@@ -753,14 +737,7 @@
         async function continueGame() {
             showLoading(true, "Exploration..."); // Message de chargement modifié
 
-            if (!GEMINI_TEXT_API_KEY) {
-                console.error("Clé API Gemini Texte manquante. Impossible de générer l'événement.");
-                mainTextDiv.innerHTML = '';
-                updateMainText("La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
-                showLoading(false);
-                showCustomModal("Erreur API Texte", "La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
-                return;
-            }
+            const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
             const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
             Quel événement se produit ? Décrivez-le brièvement. Vous pouvez y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
@@ -779,6 +756,7 @@
 
             try {
                 const responseJson = await callGeminiTextAPI(chatHistory, {
+                    apiKey: apiKey,
                     responseMimeType: "application/json",
                     responseSchema: {
                         type: "OBJECT",
@@ -860,14 +838,7 @@
 
             showLoading(true, "Interprétation...");
 
-            if (!GEMINI_TEXT_API_KEY) {
-                console.error("Clé API Gemini Texte manquante. Impossible d'analyser l'action.");
-                mainTextDiv.innerHTML = '';
-                updateMainText("La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
-                showLoading(false);
-                showCustomModal("Erreur API Texte", "La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
-                return;
-            }
+            const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
             const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
             Évaluez la réussite/échec de cette action en fonction du contexte précédent, du réalisme, et de la difficulté. Décrivez les conséquences (dégâts, gain de vie, obtention/perte d'objets, changement de statistiques, fuite, fin de combat, etc.). Soyez concis et direct. Le ton est horrifiant et sombre.
@@ -906,6 +877,7 @@
 
             try {
                 const responseJson = await callGeminiTextAPI(chatHistory, {
+                    apiKey: apiKey,
                     responseMimeType: "application/json",
                     responseSchema: {
                         type: "OBJECT",
@@ -1019,13 +991,22 @@
         /**
          * Appelle l'API Gemini Text.
          * @param {Array} history - L'historique des messages pour l'API.
-         * @param {Object} generationConfig - Configuration de génération pour la réponse structurée (optionnel).
+         * @param {Object} options - Options pour la configuration de génération et la clé API.
+         * @param {string} options.apiKey - La clé API à utiliser.
+         * @param {Object} options.responseMimeType - Type MIME pour la réponse structurée (optionnel).
+         * @param {Object} options.responseSchema - Schéma pour la réponse structurée (optionnel).
          * @returns {Promise<string>} La réponse textuelle ou JSON de l'IA.
          */
-        async function callGeminiTextAPI(history, generationConfig = {}) {
-            const textApiKey = GEMINI_TEXT_API_KEY;
-            const payload = { contents: history, generationConfig: generationConfig };
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${textApiKey}`;
+        async function callGeminiTextAPI(history, options = {}) {
+            const apiKey = options.apiKey || ""; // Utilise la clé fournie ou une chaîne vide par défaut
+            const payload = { contents: history };
+            if (options.responseMimeType) {
+                payload.generationConfig = {
+                    responseMimeType: options.responseMimeType,
+                    responseSchema: options.responseSchema
+                };
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
