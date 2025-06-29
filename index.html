@@ -676,7 +676,7 @@
             // displayEnemyStats(null); // Fonction supprimée, plus besoin de l'appeler ici
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             // Afficher l'image du menu principal
-            await updateGameImage("gloomy dungeon, Castlevania style, main menu, title Generativus");
+            await updateGameImage("gloomy dungeon, scary, title Generativus");
             sendButton.onclick = handleMainMenuInput; // Attacher le gestionnaire pour le menu
             playerInput.onkeypress = (e) => {
                 if (e.key === 'Enter') handleMainMenuInput();
