@@ -650,8 +650,7 @@
                     gameImage.onerror = () => {
                         console.error("Erreur de chargement de l'image. Tentative de placeholder.");
                         gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
-                        imageLoadingIndicator.style.display = 'none';
-                        gameImage.style.opacity = 1;
+                        imageLoadingIndicator.style.display = 1;
                     };
                 } else {
                     console.error("Réponse de l'API Image inattendue:", result);
@@ -769,14 +768,15 @@
                 return;
             }
 
-            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire (non-visible) contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
-            Quel événement se produit ? Décrivez-le brièvement, et proposez des choix ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
+            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
+            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
-              "narrative_text": "Texte décrivant l'événement et les options. Soyez concis et direct.",
+              "narrative_text": "Texte décrivant l'événement et les options. Soyez concis et direct. Ex: 'Vous trouvez une épée rouillée au sol.'",
               "image_prompt": "Prompt pour l'image (contexte)",
-              "action_required": true
+              "action_required": true,
+              "inventory_changes": [] // Optionnel: Si un objet est trouvé, ajoutez {"action": "add", "item": "Nom de l'objet"} ici.
             }
             \`\`\`
             `;
@@ -791,9 +791,19 @@
                         properties: {
                             "narrative_text": { "type": "STRING" },
                             "image_prompt": { "type": "STRING" },
-                            "action_required": { "type": "BOOLEAN" }
+                            "action_required": { "type": "BOOLEAN" },
+                            "inventory_changes": { // Ajout de inventory_changes dans le schéma
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "action": { "type": "STRING" },
+                                        "item": { "type": "STRING" }
+                                    }
+                                }
+                            }
                         },
-                        "propertyOrdering": ["narrative_text", "image_prompt", "action_required"]
+                        "propertyOrdering": ["narrative_text", "image_prompt", "action_required", "inventory_changes"] // Ajout de inventory_changes dans l'ordre
                     }
                 });
 
@@ -816,9 +826,18 @@
                     }
                 }
 
-
                 updateMainText(parsedResponse.narrative_text); // Le nouveau texte généré par l'IA.
                 chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedResponse) }] });
+
+                // Gérer l'inventaire si des objets sont trouvés lors d'un événement
+                if (parsedResponse.inventory_changes && Array.isArray(parsedResponse.inventory_changes)) {
+                    parsedResponse.inventory_changes.forEach(change => {
+                        if (change.action === "add") {
+                            player.inventory.push(change.item);
+                            console.log(`Objet ajouté à l'inventaire: ${change.item}`);
+                        }
+                    });
+                }
 
                 // currentEnemy n'est plus géré ici
                 // displayEnemyStats(currentEnemy);
@@ -857,22 +876,37 @@
                 return;
             }
 
-            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire (non-visible) contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
+            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
             Évaluez la réussite/échec de cette action en fonction du contexte précédent, du réalisme, et de la difficulté. Décrivez les conséquences (dégâts, gain de vie, obtention/perte d'objets, changement de statistiques, fuite, fin de combat, etc.). Soyez concis et direct. Le ton est horrifiant et sombre.
-            Si vous demandez votre inventaire, décrivez-le. Si vous utilisez un objet, gérez son effet. Si vous tentez d'équiper, appliquez les stats.
-            Augmentez la difficulté du jeu (gameDifficulty) très légèrement après chaque action réussie qui fait progresser l'histoire (max 25%).
+
+            **Gestion d'inventaire et de statistiques:**
+            * Si le joueur demande à voir son inventaire (ex: "montre mon inventaire", "que j'ai?"), listez les objets actuels dans la 'narrative_text'. Ne modifiez pas les 'stat_changes' ou 'inventory_changes'.
+            * Si le joueur utilise de la nourriture (ex: "manger une ration", "boire potion"):
+                * Assurez-vous que l'objet est dans l'inventaire.
+                * Ajoutez \`{"action": "remove", "item": "Nom de la nourriture"}\` à 'inventory_changes'.
+                * Augmentez la VIE dans 'stat_changes'. La VIE ne peut pas dépasser ${player.maxVie}.
+            * Si le joueur équipe une arme (ex: "équiper l'épée", "prendre la hache"):
+                * Assurez-vous que l'objet est dans l'inventaire.
+                * Ajoutez \`{"action": "remove", "item": "Nom de l'arme"}\` à 'inventory_changes'.
+                * Augmentez l'ATT de 1 à 3 points dans 'stat_changes'. Les bonus de +3 ATT sont rares.
+            * Si le joueur équipe une armure (ex: "mettre le plastron", "porter le casque"):
+                * Assurez-vous que l'objet est dans l'inventaire.
+                * Ajoutez \`{"action": "remove", "item": "Nom de l'armure"}\` à 'inventory_changes'.
+                * Augmentez UNE SEULE statistique (ATT, VIE max, ou AGI) de 1 à 3 points dans 'stat_changes'. Les bonus de +3 sont rares.
+            * Si de nouveaux objets sont trouvés suite à cette action, ajoutez-les avec \`{"action": "add", "item": "Nom de l'objet"}\` dans 'inventory_changes'.
+            * **TRÈS IMPORTANT:** Toute modification de statistiques ou d'inventaire DOIT se faire UNIQUEMENT via les champs 'stat_changes' et 'inventory_changes' du JSON, PAS dans le texte narratif (sauf pour lister l'inventaire). La vie maximum (VIE max) ne doit jamais dépasser 99.
+
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
-              "narrative_text": "Texte décrivant les conséquences de l'action.",
+              "narrative_text": "Texte décrivant les conséquences de l'action. Ex: 'Vous mangez la ration et vous sentez revigoré.' ou 'Vous équipez l'épée, son tranchant sinistre vous rend plus fort.'",
               "image_prompt": "Prompt pour l'image (contexte)",
-              "stat_changes": { "att": 0, "vie": 0, "maxVie": 0, "agi": 0 },
-              "inventory_changes": [], // Ex: [{ "action": "add", "item": "épée rouillée" }, { "action": "remove", "item": "potion de soin" }]
+              "stat_changes": { "att": 0, "vie": 0, "maxVie": 0, "agi": 0 }, // Ajoutez ici les changements de stats (ex: {"vie": 5} pour la nourriture, ou {"att": 2} pour une arme)
+              "inventory_changes": [], // Ajoutez ici les modifications d'inventaire (add/remove)
               "game_over": false,
               "next_event_ready": false // True si l'IA a terminé sa réponse pour cet événement et attend le prochain
             }
             \`\`\`
-            Note: Si vous utilisez une potion de soin, la vie ne peut pas dépasser la vie maximale. Si un objet est équipé, ses stats sont ajoutées à vos stats et supprimées de l'inventaire virtuel, et les stats de l'objet précédemment équipé (si applicable) sont retirées. La vie maximum ne doit jamais dépasser 99.
             `;
 
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
@@ -953,10 +987,12 @@
                     parsedResponse.inventory_changes.forEach(change => {
                         if (change.action === "add") {
                             player.inventory.push(change.item);
+                            console.log(`Objet ajouté à l'inventaire: ${change.item}`);
                         } else if (change.action === "remove") {
                             const index = player.inventory.indexOf(change.item);
                             if (index > -1) {
                                 player.inventory.splice(index, 1);
+                                console.log(`Objet retiré de l'inventaire: ${change.item}`);
                             }
                         }
                     });
