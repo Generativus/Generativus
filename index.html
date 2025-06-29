@@ -798,8 +798,8 @@
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
             // Mise à jour du prompt pour inclure la difficulté sous forme X/25
-            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty} sur ${MAX_DIFFICULTY}.
-            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix (dans une texte fluide) ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
+            const prompt = `Vous (${player.name}, Attaque:${player.att} sur 20, Vie:${player.vie} sur ${player.maxVie}, Agilité:${player.agi} sur 6) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty} sur ${MAX_DIFFICULTY}.
+            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix (dans une texte fluide) ou attendez une action libre de votre part. Le ton est horrifiant et sombre. S'il y a un combat, prendre en compte les statisitique du joueur et la difficulté du jeu en plus de suivre la vie de l'ennemi à l'interne (sans la divulger au joueur). l'agilité représente la chance d'esquiver l'attaque de l'ennemi.  
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
