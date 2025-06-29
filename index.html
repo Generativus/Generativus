@@ -826,7 +826,8 @@
                 if (parsedResponse.image_prompt) {
                     await updateGameImage(parsedResponse.image_prompt);
                 }
-                player.score++;
+                // Mise à jour du score en fonction de la difficulté
+                player.score += Math.round(1 + gameDifficulty * 5); // Score augmente plus vite avec la difficulté
             } catch (error) {
                 console.error("Erreur lors de la continuation du jeu:", error);
                 updateMainText("Une erreur est survenue, le donjon semble instable. Veuillez réessayer. Détails: " + error.message);
@@ -978,7 +979,7 @@
                     updateStatsUI();
                     await gameOver();
                 } else if (parsedResponse.next_event_ready) {
-                    player.score++;
+                    player.score++; // Le score est mis à jour dans `continueGame` maintenant, pas ici
                     await continueGame();
                 }
             } catch (error) {
@@ -1121,7 +1122,8 @@
 
                 const section = document.createElement('div');
                 section.classList.add('leaderboard-section');
-                section.innerHTML = `<h3>Classement Mode Gore</h3><ol></ol>`;
+                // Modification du titre du classement
+                section.innerHTML = `<h3>Classement</h3><ol></ol>`;
                 const ol = section.querySelector('ol');
 
                 if (scores.length === 0) {
@@ -1139,7 +1141,8 @@
                 console.error(`Erreur lors du chargement du classement ${mode}:`, error);
                 const section = document.createElement('div');
                 section.classList.add('leaderboard-section');
-                section.innerHTML = `<h3>Classement Mode Gore</h3><p>Erreur de chargement.</p>`;
+                // Modification du titre du classement en cas d'erreur
+                section.innerHTML = `<h3>Classement</h3><p>Erreur de chargement.</p>`;
                 leaderboardsDisplay.appendChild(section);
             }
             showLoading(false);
