@@ -661,11 +661,11 @@
          */
         async function showMainMenu() {
             gameStarted = false;
-            mainTextDiv.innerHTML = 'Bienvenue dans Generativus ! Un monde généré de manière dynamique.<br>Entrez votre nom pour commencer.'; // Texte d'intro simplifié
+            mainTextDiv.innerHTML = 'Bienvenue dans Generativus! Un monde sans limite, lugubre et effrayant. Pourrez-vous vous en sortir vivant?<br>Entrez votre nom pour commencer.'; // Texte d'intro simplifié
             updateStatsUI();
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             // Afficher l'image du menu principal
-            await updateGameImage("gloomy dungeon, Castlevania style, main menu, title Generativus");
+            await updateGameImage("gloomy dungeon, scary, dark, title Generativus");
             sendButton.onclick = handleMainMenuInput; // Attacher le gestionnaire pour le menu
             playerInput.onkeypress = (e) => {
                 if (e.key === 'Enter') handleMainMenuInput();
@@ -718,7 +718,7 @@
 
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
-            const prompt = `Génère une brève backstory pour vous, un personnage nommé ${player.name}, qui êtes sur le point d'entrer dans un donjon appelé Generativus. Le ton doit être horrifiant et sombre. Sois très concis, juste un court paragraphe.`;
+            const prompt = `Génère une très brève backstory pour vous, un personnage nommé ${player.name}, qui êtes sur le point d'entrer dans un donjon appelé Generativus. Le ton doit être horrifiant et sombre. Sois très concis, juste un court paragraphe.`;
 
             chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
 
@@ -743,7 +743,7 @@
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
             const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
-            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
+            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez parfois y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix (dans une texte fluide) ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
