@@ -451,7 +451,8 @@
         // currentEnemy n'est plus nécessaire car les stats ne sont plus affichées
         // let currentEnemy = null;
 
-        let gameDifficulty = 0; // Pourcentage de 0 à 25
+        const MAX_DIFFICULTY = 25; // Constante pour la difficulté maximale
+        let gameDifficulty = 1; // DIFFICULTÉ INITIALE À 1
         let gameStarted = false;
         let authReady = false;
         let db, auth, userId;
@@ -745,7 +746,7 @@
             gameStarted = true;
             player.vie = player.maxVie; // Réinitialise la vie
             player.score = 0;
-            gameDifficulty = 0; // Difficultité initiale
+            gameDifficulty = 1; // DIFFICULTÉ INITIALE À 1
             updateStatsUI();
             player.mode = 'Gore'; // Force le mode à Gore
             document.body.classList.remove('friendly-mode'); // Assure que c'est toujours le mode Gore
@@ -796,8 +797,9 @@
 
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
-            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
-            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez parfois y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix (dans une texte fluide) ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
+            // Mise à jour du prompt pour inclure la difficulté sous forme X/25
+            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty} sur ${MAX_DIFFICULTY}.
+            Quel événement se produit ? Décrivez-le brièvement. Vous pouvez y introduire la découverte d'objets (armes, armures, nourriture). Proposez des choix (dans une texte fluide) ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
@@ -895,7 +897,8 @@
 
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
-            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
+            // Mise à jour du prompt pour inclure la difficulté sous forme X/25
+            const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}/${MAX_DIFFICULTY}.
             Évaluez la réussite/échec de cette action en fonction du contexte précédent, du réalisme, et de la difficulté. Décrivez les conséquences (dégâts, gain de vie, obtention/perte d'objets, changement de statistiques, fuite, fin de combat, etc.). Soyez concis et direct. Le ton est horrifiant et sombre.
 
             **Gestion d'inventaire et de statistiques:**
@@ -1019,8 +1022,9 @@
                 }
 
                 // Augmenter la difficulté si l'événement progresse
-                if (parsedResponse.next_event_ready && gameDifficulty < 25) {
-                    gameDifficulty = Math.min(25, gameDifficulty + 0.5);
+                // DIFFICULTÉ AUGMENTE DE 1 ET EST AFFICHÉE SUR 25
+                if (parsedResponse.next_event_ready && gameDifficulty < MAX_DIFFICULTY) {
+                    gameDifficulty = Math.min(MAX_DIFFICULTY, gameDifficulty + 1);
                 }
 
                 if (parsedResponse.image_prompt) {
@@ -1111,7 +1115,7 @@
                 score: 0,
                 mode: 'Gore' // Toujours en mode Gore
             };
-            gameDifficulty = 0;
+            gameDifficulty = 1; // RÉINITIALISE LA DIFFICULTÉ À 1
             gameStarted = false;
             chatHistory = [];
             document.body.classList.remove('friendly-mode'); // Assure que c'est toujours le mode Gore
