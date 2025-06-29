@@ -1032,7 +1032,7 @@
          */
         async function gameOver() {
             showLoading(true); // Utilise l'écran de chargement unifié
-            let message = `Votre aventure dans Generativus prend fin. Vous avez survécu à ${player.score} événements.`;
+            let message = `Votre aventure dans Generativus prend fin. Vous avez atteint une score de ${player.score}.`;
             modalTitle.textContent = `SCORE FINAL : ${player.score}`; // Affiche le score final
             modalMessage.textContent = message;
 
