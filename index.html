@@ -423,6 +423,7 @@
         let gameStarted = false;
         let authReady = false;
         let db, auth, userId;
+        let lastPlayerMessageElement = null; // Nouvelle variable pour la référence à l'élément du message du joueur
 
         // Références aux éléments du DOM
         const gameContainer = document.getElementById('game-container');
@@ -437,8 +438,7 @@
         // const enemyStatsDisplay = document.getElementById('enemy-stats');
         // const enemyNameSpan = document.getElementById('enemy-name');
         // const enemyAttSpan = document.getElementById('enemy-att');
-        // const enemyHpSpan = document.getElementById('enemy-hp');
-        // const enemyAgiSpan = document.getElementById('enemy-agi');
+        // const enemyHpSpan = document = document.getElementById('enemy-hp');
         const mainTextDiv = document.getElementById('main-text');
         const playerInput = document.getElementById('player-input');
         const sendButton = document.getElementById('send-button');
@@ -572,19 +572,34 @@
         */
 
         /**
-         * Met à jour le texte principal affiché dans le jeu.
+         * Met à jour le texte principal affiché dans le jeu, avec une logique de défilement améliorée.
          * @param {string} text - Le texte à afficher.
          * @param {boolean} isPlayerMessage - Indique si le message vient du joueur.
          */
         function updateMainText(text, isPlayerMessage = false) {
             const p = document.createElement('p');
             p.innerHTML = text; // Utiliser innerHTML pour permettre les retours à la ligne
+            mainTextDiv.appendChild(p);
+
             if (isPlayerMessage) {
                 p.classList.add('player-message');
+                lastPlayerMessageElement = p; // Stocke la référence au dernier message du joueur
+                // Défile toujours jusqu'à la fin pour que le joueur voie sa propre saisie.
+                scrollableContent.scrollTop = scrollableContent.scrollHeight;
+            } else {
+                // Pour les messages de l'IA, défile jusqu'au dernier input du joueur
+                // ou au début si aucun input joueur n'a été fait.
+                requestAnimationFrame(() => {
+                    if (lastPlayerMessageElement) {
+                        lastPlayerMessageElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        // Si c'est le tout premier texte du jeu, défile au début.
+                        scrollableContent.scrollTop = 0;
+                    }
+                });
             }
-            mainTextDiv.appendChild(p);
-            scrollableContent.scrollTop = scrollableContent.scrollHeight; // Défilement automatique
         }
+
 
         /**
          * Met à jour l'image du jeu en appelant l'API Gemini Image.
@@ -667,6 +682,8 @@
             playerInput.onkeypress = (e) => {
                 if (e.key === 'Enter') handleMainMenuInput();
             };
+            lastPlayerMessageElement = null; // Réinitialiser l'élément de défilement pour le menu
+            scrollableContent.scrollTop = 0; // Assurez-vous que le texte d'intro est visible
         }
 
         /**
@@ -701,6 +718,7 @@
             playerInput.onkeypress = (e) => {
                 if (e.key === 'Enter') sendPlayerAction();
             };
+            lastPlayerMessageElement = null; // Réinitialiser l'élément de défilement au début du jeu
 
             await generateBackstory();
         }
@@ -726,8 +744,7 @@
 
             try {
                 const response = await callGeminiTextAPI(chatHistory);
-                // mainTextDiv.innerHTML = ''; // Retiré pour laisser le texte s'ajouter
-                updateMainText(response);
+                updateMainText(response); // C'est le premier texte généré, il se défilera au début.
                 chatHistory.push({ role: "model", parts: [{ text: response }] });
                 await continueGame();
             } catch (error) {
@@ -800,8 +817,7 @@
                 }
 
 
-                // mainTextDiv.innerHTML = ''; // Retiré pour laisser le texte s'ajouter
-                updateMainText(parsedResponse.narrative_text);
+                updateMainText(parsedResponse.narrative_text); // Le nouveau texte généré par l'IA.
                 chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedResponse) }] });
 
                 // currentEnemy n'est plus géré ici
@@ -826,7 +842,7 @@
             const input = playerInput.value.trim();
             if (!input) return;
 
-            updateMainText(`> ${input}`, true);
+            updateMainText(`> ${input}`, true); // Ceci est un message du joueur
             playerInput.value = '';
 
             showLoading(true, "Interprétation...");
@@ -913,8 +929,7 @@
                     }
                 }
 
-                // mainTextDiv.innerHTML = ''; // Retiré pour laisser le texte s'ajouter
-                updateMainText(parsedResponse.narrative_text);
+                updateMainText(parsedResponse.narrative_text); // C'est un message de l'IA.
                 chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedResponse) }] });
 
                 // Appliquer les changements de stats joueur
@@ -1042,6 +1057,7 @@
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             updateStatsUI();
             // displayEnemyStats(null); // Fonction displayEnemyStats retirée
+            lastPlayerMessageElement = null; // Réinitialiser la référence à l'élément du message du joueur
         }
 
         /**
