@@ -78,7 +78,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Fond noir semi-transparent */
+            background-color: #000; /* Fond noir complètement opaque */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -448,25 +448,25 @@
         /**
          * Affiche ou masque l'overlay de chargement.
          * @param {boolean} show - True pour afficher, false pour masquer.
-         * @param {string} message - Message à afficher pendant le chargement.
-         * @param {function} callback - Fonction à exécuter une fois le masquage terminé.
          */
-        function showLoading(show, message = "Interprétation...", callback = null) {
+        function showLoading(show) {
             if (show) {
                 loadingOverlay.style.display = 'flex';
+                // Fond noir complètement opaque
+                loadingOverlay.style.backgroundColor = '#000';
                 // Utilise requestAnimationFrame pour s'assurer que display est appliqué avant la transition
                 requestAnimationFrame(() => {
                     loadingOverlay.classList.add('active');
                 });
-                loadingMessage.textContent = message;
+                // Message "Chargement..." unifié pour tous les états
+                loadingMessage.textContent = "Chargement...";
             } else {
                 loadingOverlay.classList.remove('active');
                 // Écoute la fin de la transition pour masquer l'élément complètement
                 loadingOverlay.addEventListener('transitionend', function handler() {
                     loadingOverlay.style.display = 'none';
-                    if (callback) {
-                        callback(); // Exécute le callback après la disparition complète
-                    }
+                    // Assurez-vous que le fond redevient transparent après la transition si nécessaire,
+                    // bien que display:none le masque complètement.
                     loadingOverlay.removeEventListener('transitionend', handler);
                 }, { once: true });
             }
@@ -604,7 +604,7 @@
         async function updateGameImage(imagePrompt) {
             gameImage.style.display = 'none'; // Cache l'image pour s'assurer qu'elle est couverte
             gameImage.src = ''; // Efface l'image précédente
-            showLoading(true, "Chargement de l'image..."); // Affiche l'overlay de chargement sur la zone de l'image
+            showLoading(true); // Utilise l'écran de chargement unifié
 
             const apiKey = GEMINI_IMAGE_API_KEY; // Utilise la clé API de la variable globale
 
@@ -634,22 +634,25 @@
                     gameImage.src = imageUrl;
                     gameImage.onload = () => {
                         gameImage.style.display = 'block'; // Révèle l'image une fois chargée
-                        showLoading(false); // Masque l'indicateur
+                        // Délai de 2 secondes supplémentaires avant de masquer l'overlay de chargement
+                        setTimeout(() => {
+                            showLoading(false);
+                        }, 2000);
                     };
                     gameImage.onerror = () => {
                         console.error("Erreur de chargement de l'image. Tentative de placeholder.");
                         // En cas d'erreur de chargement de l'image, on garde l'overlay actif
-                        showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
+                        showLoading(true); // L'overlay reste actif avec le message unifié "Chargement..."
                     };
                 } else {
                     console.error("Réponse de l'API Image inattendue:", result);
                     // Si la réponse de l'API est inattendue, on garde l'overlay actif
-                    showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
+                    showLoading(true); // L'overlay reste actif avec le message unifié "Chargement..."
                 }
             } catch (error) {
                 console.error("Erreur lors de la génération d'image:", error);
                 // Si une erreur générale survient, on garde l'overlay actif
-                showLoading(true, "Image non disponible"); // L'overlay reste actif avec ce message
+                showLoading(true); // L'overlay reste actif avec le message unifié "Chargement..."
             }
         }
 
@@ -711,7 +714,7 @@
          * Génère la backstory du personnage via l'API Gemini Text.
          */
         async function generateBackstory() {
-            showLoading(true, "Interprétation..."); // Message de chargement modifié
+            showLoading(true); // Utilise l'écran de chargement unifié
 
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
@@ -735,7 +738,7 @@
          * Continue le jeu en générant le prochain événement.
          */
         async function continueGame() {
-            showLoading(true, "Exploration..."); // Message de chargement modifié
+            showLoading(true); // Utilise l'écran de chargement unifié
 
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
@@ -820,8 +823,6 @@
                 console.error("Erreur lors de la continuation du jeu:", error);
                 updateMainText("Une erreur est survenue, le donjon semble instable. Veuillez réessayer. Détails: " + error.message);
             } finally {
-                // Seulement masquer l'overlay si tout s'est bien passé jusqu'à la mise à jour de l'image
-                // S'il y a une erreur dans updateGameImage, l'overlay reste visible
                 // showLoading(false); // Commenté car géré par updateGameImage ou les blocs d'erreur spécifiques.
             }
         }
@@ -836,7 +837,7 @@
             updateMainText(`> ${input}`, true); // Ceci est un message du joueur
             playerInput.value = '';
 
-            showLoading(true, "Interprétation...");
+            showLoading(true); // Utilise l'écran de chargement unifié
 
             const apiKey = GEMINI_TEXT_API_KEY; // Utilise la clé API de la variable globale
 
@@ -1030,7 +1031,7 @@
          * Gère la fin de partie (mort du joueur).
          */
         async function gameOver() {
-            showLoading(true, "Fin de partie...");
+            showLoading(true); // Utilise l'écran de chargement unifié
             let message = `Votre aventure dans Generativus prend fin. Vous avez survécu à ${player.score} événements.`;
             modalTitle.textContent = `SCORE FINAL : ${player.score}`; // Affiche le score final
             modalMessage.textContent = message;
@@ -1112,7 +1113,7 @@
             }
 
             leaderboardsDisplay.innerHTML = ''; // Nettoyer l'affichage précédent
-            showLoading(true, "Chargement des classements...");
+            showLoading(true); // Utilise l'écran de chargement unifié
 
             // Toujours charger le classement Gore
             const mode = 'gore';
