@@ -191,6 +191,37 @@
             background-color: #45a049;
         }
 
+        /* Nouveau style pour le bouton "Terminer la partie" */
+        #end-game-button {
+            background-color: #CC0000; /* Rouge foncé pour l'horreur */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: block; /* Prend toute la largeur disponible */
+            width: 100%;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            font-family: 'Press Start 2P', cursive;
+            margin-top: 15px; /* Espace au-dessus du bouton */
+            box-shadow: 0 5px #990000; /* Ombre pour un effet 3D */
+            position: relative;
+            top: 0;
+            left: 0;
+        }
+
+        #end-game-button:hover {
+            background-color: #AA0000; /* Rouge plus foncé au survol */
+        }
+
+        #end-game-button:active {
+            box-shadow: 0 2px #770000; /* Ombre plus petite au clic */
+            transform: translateY(3px); /* Effet de pression */
+        }
+
         /* Overlays for alerts and leaderboards */
         .overlay {
             position: fixed;
@@ -305,7 +336,7 @@
             #stats {
                 font-size: 0.7em;
             }
-            #player-input, #send-button {
+            #player-input, #send-button, #end-game-button { /* Inclure le nouveau bouton */
                 font-size: 0.7em;
                 padding: 7px 10px;
             }
@@ -355,6 +386,10 @@
         <div id="input-area">
             <input type="text" id="player-input" placeholder="Ex: Gérard">
             <button id="send-button">Envoyer</button>
+        </div>
+        <!-- Conteneur pour le bouton "Terminer la partie" -->
+        <div id="game-over-action-area" style="display: none;">
+            <button id="end-game-button">Terminer la partie</button>
         </div>
     </div>
 
@@ -436,6 +471,10 @@
         const mainTextDiv = document.getElementById('main-text');
         const playerInput = document.getElementById('player-input');
         const sendButton = document.getElementById('send-button');
+        const inputArea = document.getElementById('input-area'); // Référence à la zone de saisie
+
+        const gameOverActionArea = document.getElementById('game-over-action-area'); // Nouveau conteneur pour le bouton de fin de partie
+        const endGameButton = document.getElementById('end-game-button'); // Nouveau bouton "Terminer la partie"
 
         const customModal = document.getElementById('custom-modal');
         const modalTitle = document.getElementById('modal-title');
@@ -495,6 +534,13 @@
             customModal.style.display = 'none';
             resetGame();
             showMainMenu();
+        };
+
+        // Gérer le clic sur le bouton "Terminer la partie"
+        endGameButton.onclick = async () => {
+            await saveScore(player.name, player.score, player.mode);
+            await showCustomModal("FIN DE PARTIE !", `Votre aventure dans Generativus prend fin. Vous avez atteint un score de ${player.score}.`, true);
+            showLoading(false);
         };
 
         /**
@@ -661,6 +707,10 @@
          */
         async function showMainMenu() {
             gameStarted = false;
+            // Assure que la zone de saisie est visible et le bouton de fin de partie caché
+            inputArea.style.display = 'flex';
+            gameOverActionArea.style.display = 'none';
+
             mainTextDiv.innerHTML = 'Bienvenue dans Generativus! Un monde sans limite, lugubre et effrayant. Pourrez-vous vous en sortir vivant?<br>Entrez votre nom pour commencer.'; // Texte d'intro simplifié
             updateStatsUI();
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
@@ -706,6 +756,10 @@
                 if (e.key === 'Enter') sendPlayerAction();
             };
             lastPlayerMessageElement = null; // Réinitialiser l'élément de défilement au début du jeu
+
+            // Assure que la zone de saisie est visible et le bouton de fin de partie caché
+            inputArea.style.display = 'flex';
+            gameOverActionArea.style.display = 'none';
 
             await generateBackstory();
         }
@@ -976,7 +1030,7 @@
                 if (parsedResponse.game_over || player.vie <= 0) {
                     player.vie = 0;
                     updateStatsUI();
-                    await gameOver();
+                    await gameOver(); // Appelle la fonction gameOver modifiée
                 } else if (parsedResponse.next_event_ready) {
                     player.score++; // Le score est mis à jour dans `continueGame` maintenant, pas ici
                     await continueGame();
@@ -1031,14 +1085,16 @@
          * Gère la fin de partie (mort du joueur).
          */
         async function gameOver() {
-            showLoading(true); // Utilise l'écran de chargement unifié
-            let message = `Votre aventure dans Generativus prend fin. Vous avez atteint une score de ${player.score}.`;
-            modalTitle.textContent = `SCORE FINAL : ${player.score}`; // Affiche le score final
-            modalMessage.textContent = message;
+            showLoading(false); // Masque le chargement s'il était actif
+            // Masque la zone de saisie et affiche le bouton "Terminer la partie"
+            inputArea.style.display = 'none';
+            gameOverActionArea.style.display = 'block'; // Utilise 'block' pour le conteneur du bouton
 
-            await saveScore(player.name, player.score, player.mode);
-            await showCustomModal("FIN DE PARTIE !", message, true); // Afficher les classements
-            showLoading(false);
+            // Faites défiler le texte principal jusqu'à la fin pour que le joueur puisse tout lire
+            scrollableContent.scrollTop = scrollableContent.scrollHeight;
+
+            // Le texte final est déjà affiché dans mainTextDiv.
+            // La modale ne sera affichée que lorsque le joueur cliquera sur le bouton.
         }
 
         /**
@@ -1065,6 +1121,10 @@
             playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             updateStatsUI();
             lastPlayerMessageElement = null; // Réinitialiser la référence à l'élément du message du joueur
+
+            // S'assurer que la zone de saisie est visible et le bouton de fin de partie caché lors du reset
+            inputArea.style.display = 'flex';
+            gameOverActionArea.style.display = 'none';
         }
 
         /**
