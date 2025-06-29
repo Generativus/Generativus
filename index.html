@@ -9,8 +9,8 @@
         /* Styles généraux */
         body {
             font-family: 'Press Start 2P', cursive;
-            background-color: #000; /* Par défaut pour le mode Gore */
-            color: #fff; /* Par défaut pour le mode Gore */
+            background-color: #000; /* Toujours noir pour le mode Gore */
+            color: #fff; /* Toujours blanc pour le mode Gore */
             margin: 0;
             padding: 0;
             display: flex;
@@ -19,11 +19,8 @@
             overflow: hidden; /* Empêche le défilement du corps */
         }
 
-        /* Mode Amical */
-        body.friendly-mode {
-            background-color: #ff69b4; /* Rose vif */
-            color: #fff;
-        }
+        /* Mode Amical (styles retirés car mode supprimé) */
+        /* body.friendly-mode { ... } */
 
         /* Conteneur principal pour le jeu */
         #game-container {
@@ -38,7 +35,7 @@
             height: 100vh; /* S'assure que le conteneur prend toute la hauteur disponible */
         }
 
-        /* Section des statistiques */
+        /* Section des statistiques du joueur (fixe en haut) */
         #stats {
             display: flex;
             justify-content: space-around;
@@ -47,18 +44,9 @@
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Séparateur subtil */
             margin-bottom: 10px;
-            /* Pas de position fixed pour permettre le flex-grow sur le contenu scrollable */
         }
 
-        /* Nouveau conteneur pour le contenu défilable (image + texte principal) */
-        #scrollable-content {
-            flex-grow: 1; /* Prend tout l'espace vertical disponible */
-            overflow-y: auto; /* Permet le défilement vertical */
-            padding-right: 5px; /* Pour éviter que la scrollbar ne masque le contenu */
-        }
-
-
-        /* Zone de l'image - MÀJ pour 16:9 */
+        /* Zone de l'image (fixe après les stats joueur) */
         #game-image-container {
             width: 100%;
             padding-bottom: 56.25%; /* Pour un ratio 16:9 (height is 9/16 of width) */
@@ -90,13 +78,29 @@
             display: none; /* Masqué par défaut */
         }
 
+        /* Section des statistiques de l'ennemi (fixe sous l'image - sera masquée) */
+        #enemy-stats {
+            display: none; /* Toujours masqué */
+        }
+        /* Les styles d'enfants comme #enemy-name, #enemy-att, etc., ne sont plus nécessaires s'ils sont masqués */
+
+        /* Nouveau conteneur pour le contenu défilable (texte principal seulement) */
+        #scrollable-content {
+            flex-grow: 1; /* Prend tout l'espace vertical disponible */
+            overflow-y: auto; /* Permet le défilement vertical */
+            padding-right: 5px; /* Pour éviter que la scrollbar ne masque le contenu */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        #scrollable-content::-webkit-scrollbar { /* Chrome, Safari, Opera */
+            display: none;
+        }
+
         /* Zone de texte principale */
         #main-text {
-            /* flex-grow: 1; Ancien style, maintenant géré par #scrollable-content */
             padding: 10px 0;
             font-size: 0.9em;
             line-height: 1.6;
-            /* overflow-y: auto; Ancien style, maintenant géré par #scrollable-content */
             margin-bottom: 10px;
             text-align: justify;
         }
@@ -107,13 +111,12 @@
         }
 
 
-        /* Zone de saisie du joueur */
+        /* Zone de saisie du joueur (fixe en bas) */
         #input-area {
             width: 100%;
             display: flex;
             align-items: center;
             padding: 10px 0;
-            /* Pas de position fixed pour permettre le flex-grow sur le contenu scrollable */
         }
 
         #player-input {
@@ -168,10 +171,11 @@
             -webkit-backdrop-filter: blur(5px);
         }
 
+        /* Refonte du style de la modale pour le classement */
         .overlay-content {
-            background-color: #333;
-            border: 2px solid #555;
-            border-radius: 10px;
+            background-color: transparent; /* Pas de fond */
+            border: none; /* Pas de bordure */
+            border-radius: 0; /* Pas de coins arrondis */
             padding: 20px;
             text-align: center;
             max-width: 90%;
@@ -180,18 +184,19 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            color: inherit; /* Hérite de la couleur du corps */
         }
 
         .overlay-content h2 {
             font-size: 1.5em;
             margin-bottom: 10px;
-            color: #fff;
+            color: inherit; /* Hérite de la couleur du corps */
         }
 
         .overlay-content p {
             font-size: 1em;
             margin-bottom: 15px;
-            color: #ccc;
+            color: inherit; /* Hérite de la couleur du corps */
         }
 
         .overlay-content button {
@@ -216,19 +221,21 @@
             gap: 20px;
             width: 100%;
             text-align: left; /* Align text within leaderboard sections */
+            color: inherit; /* Hérite de la couleur du corps */
         }
 
         .leaderboard-section {
-            background-color: #222;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #444;
+            background-color: transparent; /* Pas de fond */
+            padding: 0; /* Pas de padding spécifique */
+            border-radius: 0; /* Pas de coins arrondis */
+            border: none; /* Pas de bordure */
         }
 
         .leaderboard-section h3 {
             font-size: 1.2em;
-            margin-bottom: 10px;
-            color: #0f0; /* Green for section titles */
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: inherit; /* Hérite de la couleur du corps */
             text-align: center;
         }
 
@@ -240,7 +247,7 @@
 
         .leaderboard-section li {
             padding: 5px 0;
-            border-bottom: 1px dashed #444;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2); /* Ligne de séparation subtile */
             display: flex;
             justify-content: space-between;
             font-size: 0.9em;
@@ -251,7 +258,7 @@
         }
         .score-value {
             font-weight: bold;
-            color: #fff;
+            color: inherit; /* Hérite de la couleur du corps */
         }
 
         #loading-overlay {
@@ -313,7 +320,7 @@
     <!-- Overlay de chargement -->
     <div id="loading-overlay" style="display: none;">
         <div class="spinner"></div>
-        <p>Génération en cours...</p>
+        <p>Interprétation...</p>
     </div>
 
     <div id="game-container">
@@ -324,24 +331,29 @@
             <span id="player-agi">AGI: -</span>
         </div>
 
-        <!-- Nouveau conteneur pour le contenu défilable -->
-        <div id="scrollable-content">
-            <!-- Zone de l'image de jeu -->
-            <div id="game-image-container">
-                <img id="game-image" src="" alt="Image de jeu">
-                <div id="image-loading-indicator">Chargement de l'image...</div>
-            </div>
+        <!-- Zone de l'image (fixe) -->
+        <div id="game-image-container">
+            <img id="game-image" src="" alt="Image de jeu">
+            <div id="image-loading-indicator">Chargement de l'image...</div>
+        </div>
 
-            <!-- Zone de texte principale de l'IA -->
+        <!-- Section des statistiques de l'ennemi (masquée - reste dans le DOM mais cachée par display:none) -->
+        <div id="enemy-stats">
+            <!-- Contenu des stats ennemies sera vide ou non mis à jour -->
+        </div>
+
+        <!-- Nouveau conteneur pour le contenu défilable (texte principal seulement) -->
+        <div id="scrollable-content">
+            <!-- Zone de texte principale -->
             <div id="main-text">
-                Bienvenue dans Generativus ! Un monde créé par l'IA.<br>
-                Entrez votre nom et choisissez votre mode de jeu (Mode Gore ou Mode Amical) pour commencer.
+                Bienvenue dans Generativus ! Un monde généré de manière dynamique.<br>
+                Entrez votre nom pour commencer.
             </div>
         </div>
 
-        <!-- Zone de saisie du joueur -->
+        <!-- Zone de saisie du joueur (fixe en bas) -->
         <div id="input-area">
-            <input type="text" id="player-input" placeholder="Votre action ici...">
+            <input type="text" id="player-input" placeholder="Ex: Gérard">
             <button id="send-button">Envoyer</button>
         </div>
     </div>
@@ -354,7 +366,7 @@
             <div id="leaderboards-display" style="display: none;">
                 <!-- Les classements seront injectés ici -->
             </div>
-            <button id="modal-close-button">Fermer</button>
+            <button id="modal-close-button">Recommencer</button>
         </div>
     </div>
 
@@ -389,10 +401,9 @@
         // CONFIGURATION DES CLÉS API GEMINI POUR DÉPLOIEMENT HORS CANVAS (ex: GitHub Pages)
         // Vous devez obtenir ces clés depuis Google AI Studio (aistudio.google.com/app/apikey).
         // Créez une nouvelle clé API et collez-la ci-dessous pour chaque API.
-        // Si vous laissez ces chaînes vides, l'application tentera de les obtenir de l'environnement Canvas.
         // ==============================================================================
-        const GEMINI_TEXT_API_KEY = "AIzaSyBBRm5QNpoiz4UeFLN-ARuGDFpXjhTeWP0"; // REMPLACEZ PAR VOTRE CLÉ API TEXTE
-        const GEMINI_IMAGE_API_KEY = "AIzaSyA1lOo6sFFDhy2jtzWJgh33rcVoTDQ07C4"; // REMPLACEZ PAR VOTRE CLÉ API IMAGE
+        const GEMINI_TEXT_API_KEY = "AIzaSyBBRm5QNpoiz4UeFLN-ARuGDFpXjhTeWP0";
+        const GEMINI_IMAGE_API_KEY = "AIzaSyA1lOo6sFFDhy2jtzWJgh33rcVoTDQ07C4";
 
         // Variables globales du jeu
         let player = {
@@ -403,8 +414,10 @@
             agi: 1, // Agilité
             inventory: [], // Géré textuellement par l'IA, mais on peut garder une trace simple pour l'IA
             score: 0,
-            mode: '' // 'Gore' ou 'Amical'
+            mode: 'Gore' // Mode Amical supprimé, toujours en Gore
         };
+        // currentEnemy n'est plus nécessaire car les stats ne sont plus affichées
+        // let currentEnemy = null;
 
         let gameDifficulty = 0; // Pourcentage de 0 à 25
         let gameStarted = false;
@@ -417,8 +430,15 @@
         const playerAttSpan = document.getElementById('player-att');
         const playerHpSpan = document.getElementById('player-hp');
         const playerAgiSpan = document.getElementById('player-agi');
+        const scrollableContent = document.getElementById('scrollable-content'); // Maintenu pour le texte
         const gameImage = document.getElementById('game-image');
         const imageLoadingIndicator = document.getElementById('image-loading-indicator');
+        // Supprime les références aux éléments des stats ennemies
+        // const enemyStatsDisplay = document.getElementById('enemy-stats');
+        // const enemyNameSpan = document.getElementById('enemy-name');
+        // const enemyAttSpan = document.getElementById('enemy-att');
+        // const enemyHpSpan = document.getElementById('enemy-hp');
+        // const enemyAgiSpan = document.getElementById('enemy-agi');
         const mainTextDiv = document.getElementById('main-text');
         const playerInput = document.getElementById('player-input');
         const sendButton = document.getElementById('send-button');
@@ -436,7 +456,7 @@
          * @param {boolean} show - True pour afficher, false pour masquer.
          * @param {string} message - Message à afficher pendant le chargement.
          */
-        function showLoading(show, message = "Génération en cours...") {
+        function showLoading(show, message = "Interprétation...") {
             loadingOverlay.style.display = show ? 'flex' : 'none';
             loadingOverlay.querySelector('p').textContent = message;
         }
@@ -459,13 +479,11 @@
             customModal.style.display = 'flex';
         }
 
-        // Fermer la modale
+        // Fermer la modale / Recommencer le jeu
         modalCloseButton.onclick = () => {
             customModal.style.display = 'none';
-            if (player.vie <= 0) { // Si le joueur est mort, revenir au menu principal
-                resetGame();
-                showMainMenu();
-            }
+            resetGame();
+            showMainMenu();
         };
 
         /**
@@ -538,6 +556,21 @@
             playerAgiSpan.textContent = `AGI: ${player.agi}`;
         }
 
+        // Supprime la fonction displayEnemyStats car les stats ennemies ne sont plus affichées
+        /*
+        function displayEnemyStats(enemy) {
+            if (enemy) {
+                enemyNameSpan.textContent = enemy.name || 'Ennemi';
+                enemyAttSpan.textContent = `ATT: ${enemy.att || 0}`;
+                enemyHpSpan.textContent = `VIE: ${enemy.vie || 0}`;
+                enemyAgiSpan.textContent = `AGI: ${enemy.agi || 0}`;
+                enemyStatsDisplay.style.display = 'flex';
+            } else {
+                enemyStatsDisplay.style.display = 'none';
+            }
+        }
+        */
+
         /**
          * Met à jour le texte principal affiché dans le jeu.
          * @param {string} text - Le texte à afficher.
@@ -545,12 +578,12 @@
          */
         function updateMainText(text, isPlayerMessage = false) {
             const p = document.createElement('p');
-            p.innerHTML = text; // Utiliser innerHTML pour permettre les retours à la ligne de l'IA
+            p.innerHTML = text; // Utiliser innerHTML pour permettre les retours à la ligne
             if (isPlayerMessage) {
                 p.classList.add('player-message');
             }
             mainTextDiv.appendChild(p);
-            mainTextDiv.scrollTop = mainTextDiv.scrollHeight; // Défilement automatique vers le bas
+            scrollableContent.scrollTop = scrollableContent.scrollHeight; // Défilement automatique
         }
 
         /**
@@ -562,16 +595,22 @@
             imageLoadingIndicator.style.display = 'block'; // Affiche l'indicateur
             gameImage.src = ''; // Efface l'image précédente
 
+            if (!GEMINI_IMAGE_API_KEY) {
+                console.error("Clé API Gemini Image manquante. Impossible de générer des images.");
+                gameImage.src = `https://placehold.co/400x225/FF0000/FFFFFF?text=CLE+API+IMAGE+MANQUANTE`;
+                imageLoadingIndicator.style.display = 'none';
+                gameImage.style.opacity = 1;
+                showCustomModal("Erreur API Image", "La clé API Gemini Image est manquante. Veuillez la renseigner dans le code pour que les images s'affichent.");
+                return;
+            }
+
             try {
-                // Pour imagen-3.0-generate-002, la clé API est passée dans l'URL.
-                // Fallback pour les clés API si elles sont vides
-                const imageApiKey = GEMINI_IMAGE_API_KEY === "" ? "" : GEMINI_IMAGE_API_KEY; // Pas de "YOUR_GEMINI_IMAGE_API_KEY" ici car elle sera remplie.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${imageApiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_IMAGE_API_KEY}`;
 
                 const payload = {
                     instances: {
-                        // MÀJ du prompt pour le ratio 16:9 et le style
-                        prompt: `${imagePrompt}, pixel art 16:9, no video game style, ${player.mode === 'Gore' ? 'black and white, dark, grim, scary' : 'vivid colors, cute, friendly, bright'}`
+                        // Prompt amélioré pour le style (toujours gore) et le ratio 16:9 strict
+                        prompt: `${imagePrompt}, pixel art 16:9, strict 16:9 aspect ratio, highly detailed pixel art, no video game art style, horrifying, terrifying, gruesome, stark black and white, grim`
                     },
                     parameters: {
                         sampleCount: 1
@@ -595,21 +634,18 @@
                     };
                     gameImage.onerror = () => {
                         console.error("Erreur de chargement de l'image. Tentative de placeholder.");
-                        // MÀJ du placeholder pour le ratio 16:9
                         gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
                         imageLoadingIndicator.style.display = 'none';
                         gameImage.style.opacity = 1;
                     };
                 } else {
                     console.error("Réponse de l'API Image inattendue:", result);
-                    // MÀJ du placeholder pour le ratio 16:9
                     gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Image+Non+Disponible`;
                     imageLoadingIndicator.style.display = 'none';
                     gameImage.style.opacity = 1;
                 }
             } catch (error) {
                 console.error("Erreur lors de la génération d'image:", error);
-                // MÀJ du placeholder pour le ratio 16:9
                 gameImage.src = `https://placehold.co/400x225/808080/FFFFFF?text=Erreur+Image`;
                 imageLoadingIndicator.style.display = 'none';
                 gameImage.style.opacity = 1;
@@ -621,11 +657,12 @@
          */
         async function showMainMenu() {
             gameStarted = false;
-            mainTextDiv.innerHTML = 'Bienvenue dans Generativus ! Un monde créé par l\'IA.<br>Entrez votre nom et choisissez votre mode de jeu (Mode Gore ou Mode Amical) pour commencer.';
-            updateStatsUI(); // Réinitialise les stats affichées
-            playerInput.placeholder = "Votre nom et mode (Ex: Arthur Mode Gore)";
+            mainTextDiv.innerHTML = 'Bienvenue dans Generativus ! Un monde généré de manière dynamique.<br>Entrez votre nom pour commencer.'; // Texte d'intro simplifié
+            updateStatsUI();
+            // displayEnemyStats(null); // Fonction supprimée, plus besoin de l'appeler ici
+            playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             // Afficher l'image du menu principal
-            await updateGameImage("pixel art 16:9, gloomy dungeon, Castlevania style, main menu, title Generativus");
+            await updateGameImage("gloomy dungeon, Castlevania style, main menu, title Generativus");
             sendButton.onclick = handleMainMenuInput; // Attacher le gestionnaire pour le menu
             playerInput.onkeypress = (e) => {
                 if (e.key === 'Enter') handleMainMenuInput();
@@ -642,18 +679,8 @@
             updateMainText(`> ${input}`, true); // Affiche la saisie du joueur
             playerInput.value = ''; // Efface la saisie
 
-            const nameMatch = input.match(/^(.*?)\s+(Mode\s+(Gore|Amical))$/i);
-            if (nameMatch) {
-                player.name = nameMatch[1].trim();
-                player.mode = nameMatch[3].trim();
-                if (player.name && player.mode) {
-                    startGame();
-                } else {
-                    updateMainText("Format invalide. Veuillez entrer votre nom suivi de 'Mode Gore' ou 'Mode Amical'. Ex: 'Arthur Mode Gore'");
-                }
-            } else {
-                updateMainText("Format invalide. Veuillez entrer votre nom suivi de 'Mode Gore' ou 'Mode Amical'. Ex: 'Arthur Mode Gore'");
-            }
+            player.name = input; // Capture le nom directement
+            startGame();
         }
 
         /**
@@ -664,9 +691,11 @@
             player.vie = player.maxVie; // Réinitialise la vie
             player.score = 0;
             gameDifficulty = 0; // Difficultité initiale
+            // currentEnemy = null; // Variable currentEnemy retirée
             updateStatsUI();
-            document.body.classList.toggle('friendly-mode', player.mode === 'Amical');
-            mainTextDiv.innerHTML = ''; // Efface le texte du menu
+            player.mode = 'Gore'; // Force le mode à Gore
+            document.body.classList.remove('friendly-mode'); // Assure que c'est toujours le mode Gore
+            mainTextDiv.innerHTML = ''; // Efface le texte pour le début d'une nouvelle partie
             playerInput.placeholder = "Votre action...";
             sendButton.onclick = sendPlayerAction; // Attacher le gestionnaire pour le jeu
             playerInput.onkeypress = (e) => {
@@ -680,20 +709,30 @@
          * Génère la backstory du personnage via l'API Gemini Text.
          */
         async function generateBackstory() {
-            showLoading(true, "Génération de votre histoire...");
-            // MÀJ du prompt pour la perspective de l'avatar
-            const prompt = `Génère une brève backstory pour vous, un personnage nommé ${player.name}, qui êtes sur le point d'entrer dans un donjon appelé Generativus. Le mode de jeu est "${player.mode}". Le ton doit correspondre au mode. Sois très concis, juste un court paragraphe.`;
+            showLoading(true, "Interprétation..."); // Message de chargement modifié
+
+            if (!GEMINI_TEXT_API_KEY) {
+                console.error("Clé API Gemini Texte manquante. Impossible de générer l'histoire.");
+                mainTextDiv.innerHTML = '';
+                updateMainText("La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
+                showLoading(false);
+                showCustomModal("Erreur API Texte", "La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
+                return;
+            }
+
+            const prompt = `Génère une brève backstory pour vous, un personnage nommé ${player.name}, qui êtes sur le point d'entrer dans un donjon appelé Generativus. Le ton doit être horrifiant et sombre. Sois très concis, juste un court paragraphe.`;
 
             chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
 
             try {
                 const response = await callGeminiTextAPI(chatHistory);
+                // mainTextDiv.innerHTML = ''; // Retiré pour laisser le texte s'ajouter
                 updateMainText(response);
                 chatHistory.push({ role: "model", parts: [{ text: response }] });
                 await continueGame();
             } catch (error) {
                 console.error("Erreur lors de la génération de la backstory:", error);
-                updateMainText("Une erreur est survenue lors de la génération de l'histoire. Veuillez réessayer.");
+                updateMainText("Une erreur est survenue lors de la génération de l'histoire. Veuillez réessayer. Détails: " + error.message);
                 showLoading(false);
             }
         }
@@ -702,17 +741,24 @@
          * Continue le jeu en générant le prochain événement.
          */
         async function continueGame() {
-            // Déterminer la prochaine action de l'IA (événement, combat, etc.)
-            // Ceci sera géré principalement par l'IA textuelle
-            showLoading(true, "Exploration du donjon...");
-            // MÀJ du prompt pour la perspective de l'avatar
+            showLoading(true, "Exploration..."); // Message de chargement modifié
+
+            if (!GEMINI_TEXT_API_KEY) {
+                console.error("Clé API Gemini Texte manquante. Impossible de générer l'événement.");
+                mainTextDiv.innerHTML = '';
+                updateMainText("La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
+                showLoading(false);
+                showCustomModal("Erreur API Texte", "La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
+                return;
+            }
+
             const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) êtes dans un donjon. Votre inventaire (non-visible) contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
-            Quel événement se produit ? Décrivez-le brièvement, et proposez des choix ou attendez une action libre de votre part. Le ton est "${player.mode}".
+            Quel événement se produit ? Décrivez-le brièvement, et proposez des choix ou attendez une action libre de votre part. Le ton est horrifiant et sombre.
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
-              "narrative_text": "Texte décrivant l'événement et les options.",
-              "image_prompt": "Prompt pour l'image (pixel art 16:9, [contexte], [mode])",
+              "narrative_text": "Texte décrivant l'événement et les options. Soyez concis et direct.",
+              "image_prompt": "Prompt pour l'image (contexte)",
               "action_required": true
             }
             \`\`\`
@@ -734,17 +780,40 @@
                     }
                 });
 
-                const parsedResponse = JSON.parse(responseJson);
+                let parsedResponse;
+                try {
+                    parsedResponse = JSON.parse(responseJson);
+                } catch (jsonError) {
+                    console.warn("JSON.parse initial failed, attempting regex extraction:", jsonError);
+                    const jsonMatch = responseJson.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+                    if (jsonMatch && jsonMatch[1]) {
+                        try {
+                            parsedResponse = JSON.parse(jsonMatch[1]);
+                            console.log("JSON successfully extracted and parsed with regex.");
+                        } catch (regexJsonError) {
+                            console.error("JSON regex extraction and parsing failed:", regexJsonError);
+                            throw new Error("Impossible d'extraire ou de parser le JSON de la réponse de l'API. Réponse brute: " + responseJson);
+                        }
+                    } else {
+                        throw new Error("Réponse de l'API non-JSON et extraction regex échouée. Réponse brute: " + responseJson);
+                    }
+                }
+
+
+                // mainTextDiv.innerHTML = ''; // Retiré pour laisser le texte s'ajouter
                 updateMainText(parsedResponse.narrative_text);
-                chatHistory.push({ role: "model", parts: [{ text: responseJson }] }); // Stocke la réponse JSON de l'IA
+                chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedResponse) }] });
+
+                // currentEnemy n'est plus géré ici
+                // displayEnemyStats(currentEnemy);
 
                 if (parsedResponse.image_prompt) {
                     await updateGameImage(parsedResponse.image_prompt);
                 }
-                player.score++; // Chaque événement survécu augmente le score
+                player.score++;
             } catch (error) {
                 console.error("Erreur lors de la continuation du jeu:", error);
-                updateMainText("Une erreur est survenue, le donjon semble instable. Veuillez réessayer.");
+                updateMainText("Une erreur est survenue, le donjon semble instable. Veuillez réessayer. Détails: " + error.message);
             } finally {
                 showLoading(false);
             }
@@ -757,21 +826,29 @@
             const input = playerInput.value.trim();
             if (!input) return;
 
-            updateMainText(`> ${input}`, true); // Affiche la saisie du joueur
-            playerInput.value = ''; // Efface la saisie
+            updateMainText(`> ${input}`, true);
+            playerInput.value = '';
 
-            showLoading(true, "L'IA analyse votre action...");
+            showLoading(true, "Interprétation...");
 
-            // MÀJ du prompt pour la perspective de l'avatar
+            if (!GEMINI_TEXT_API_KEY) {
+                console.error("Clé API Gemini Texte manquante. Impossible d'analyser l'action.");
+                mainTextDiv.innerHTML = '';
+                updateMainText("La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
+                showLoading(false);
+                showCustomModal("Erreur API Texte", "La clé API Gemini Texte est manquante. Veuillez la renseigner dans le code pour que le jeu fonctionne.");
+                return;
+            }
+
             const prompt = `Vous (${player.name}, ATT:${player.att}, VIE:${player.vie}/${player.maxVie}, AGI:${player.agi}) avez effectué l'action: "${input}". Votre inventaire (non-visible) contient : ${player.inventory.length > 0 ? player.inventory.join(', ') : 'rien'}. La difficulté actuelle du jeu est de ${gameDifficulty}%.
-            Évaluez la réussite/échec de cette action en fonction du contexte précédent, du réalisme, et de la difficulté. Décrivez les conséquences (dégâts, gain de vie, obtention/perte d'objets, changement de statistiques, fuite, fin de combat, etc.).
+            Évaluez la réussite/échec de cette action en fonction du contexte précédent, du réalisme, et de la difficulté. Décrivez les conséquences (dégâts, gain de vie, obtention/perte d'objets, changement de statistiques, fuite, fin de combat, etc.). Soyez concis et direct. Le ton est horrifiant et sombre.
             Si vous demandez votre inventaire, décrivez-le. Si vous utilisez un objet, gérez son effet. Si vous tentez d'équiper, appliquez les stats.
             Augmentez la difficulté du jeu (gameDifficulty) très légèrement après chaque action réussie qui fait progresser l'histoire (max 25%).
             **Format de réponse attendu (JSON):**
             \`\`\`json
             {
               "narrative_text": "Texte décrivant les conséquences de l'action.",
-              "image_prompt": "Prompt pour l'image (pixel art 16:9, [contexte], [mode])",
+              "image_prompt": "Prompt pour l'image (contexte)",
               "stat_changes": { "att": 0, "vie": 0, "maxVie": 0, "agi": 0 },
               "inventory_changes": [], // Ex: [{ "action": "add", "item": "épée rouillée" }, { "action": "remove", "item": "potion de soin" }]
               "game_over": false,
@@ -817,12 +894,30 @@
                     }
                 });
 
-                const parsedResponse = JSON.parse(responseJson);
+                let parsedResponse;
+                try {
+                    parsedResponse = JSON.parse(responseJson);
+                } catch (jsonError) {
+                    console.warn("JSON.parse initial failed, attempting regex extraction:", jsonError);
+                    const jsonMatch = responseJson.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+                    if (jsonMatch && jsonMatch[1]) {
+                        try {
+                            parsedResponse = JSON.parse(jsonMatch[1]);
+                            console.log("JSON successfully extracted and parsed with regex.");
+                        } catch (regexJsonError) {
+                            console.error("JSON regex extraction and parsing failed:", regexJsonError);
+                            throw new Error("Impossible d'extraire ou de parser le JSON de la réponse de l'API. Réponse brute: " + responseJson);
+                        }
+                    } else {
+                        throw new Error("Réponse de l'API non-JSON et extraction regex échouée. Réponse brute: " + responseJson);
+                    }
+                }
 
+                // mainTextDiv.innerHTML = ''; // Retiré pour laisser le texte s'ajouter
                 updateMainText(parsedResponse.narrative_text);
-                chatHistory.push({ role: "model", parts: [{ text: responseJson }] }); // Stocke la réponse JSON de l'IA
+                chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(parsedResponse) }] });
 
-                // Appliquer les changements de stats
+                // Appliquer les changements de stats joueur
                 if (parsedResponse.stat_changes) {
                     player.att += parsedResponse.stat_changes.att || 0;
                     player.vie += parsedResponse.stat_changes.vie || 0;
@@ -832,7 +927,7 @@
                     // Clamp VIE à maxVie et maxVie à 99
                     player.vie = Math.min(player.vie, player.maxVie);
                     player.maxVie = Math.min(player.maxVie, 99);
-                    player.vie = Math.max(0, player.vie); // Empêche la vie négative d'être affichée si pas game over
+                    player.vie = Math.max(0, player.vie);
 
                     updateStatsUI();
                 }
@@ -851,9 +946,12 @@
                     });
                 }
 
+                // currentEnemy n'est plus géré ici
+                // displayEnemyStats(currentEnemy);
+
                 // Augmenter la difficulté si l'événement progresse
                 if (parsedResponse.next_event_ready && gameDifficulty < 25) {
-                    gameDifficulty = Math.min(25, gameDifficulty + 0.5); // Augmentation légère
+                    gameDifficulty = Math.min(25, gameDifficulty + 0.5);
                 }
 
                 if (parsedResponse.image_prompt) {
@@ -861,17 +959,16 @@
                 }
 
                 if (parsedResponse.game_over || player.vie <= 0) {
-                    player.vie = 0; // Assurer que la vie est à 0 à la fin
+                    player.vie = 0;
                     updateStatsUI();
                     await gameOver();
                 } else if (parsedResponse.next_event_ready) {
-                    player.score++; // Augmenter le score pour chaque événement/combat terminé
-                    await continueGame(); // Passer au prochain événement
+                    player.score++;
+                    await continueGame();
                 }
             } catch (error) {
                 console.error("Erreur lors du traitement de l'action du joueur:", error);
-                updateMainText("Une erreur est survenue lors de l'analyse de votre action. Le jeu est bloqué, veuillez actualiser la page.");
-                showLoading(false);
+                updateMainText("Une erreur est survenue lors de l'analyse de votre action. Le jeu est bloqué, veuillez actualiser la page. Détails: " + error.message);
             } finally {
                 showLoading(false);
             }
@@ -884,8 +981,7 @@
          * @returns {Promise<string>} La réponse textuelle ou JSON de l'IA.
          */
         async function callGeminiTextAPI(history, generationConfig = {}) {
-            // Fallback pour les clés API si elles sont vides
-            const textApiKey = GEMINI_TEXT_API_KEY === "" ? "" : GEMINI_TEXT_API_KEY; // Pas de "YOUR_GEMINI_TEXT_API_KEY" ici car elle sera remplie.
+            const textApiKey = GEMINI_TEXT_API_KEY;
             const payload = { contents: history, generationConfig: generationConfig };
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${textApiKey}`;
 
@@ -903,7 +999,7 @@
                 return result.candidates[0].content.parts[0].text;
             } else {
                 console.error("Réponse de l'API Gemini inattendue:", result);
-                throw new Error("Impossible d'obtenir une réponse de l'IA. Vérifiez la console pour plus de détails.");
+                throw new Error("Impossible d'obtenir une réponse de l'API textuelle.");
             }
         }
 
@@ -913,7 +1009,7 @@
         async function gameOver() {
             showLoading(true, "Fin de partie...");
             let message = `Votre aventure dans Generativus prend fin. Vous avez survécu à ${player.score} événements.`;
-            modalTitle.textContent = "FIN DE PARTIE !";
+            modalTitle.textContent = `SCORE FINAL : ${player.score}`; // Affiche le score final
             modalMessage.textContent = message;
 
             await saveScore(player.name, player.score, player.mode);
@@ -933,24 +1029,26 @@
                 agi: 1,
                 inventory: [],
                 score: 0,
-                mode: ''
+                mode: 'Gore' // Toujours en mode Gore
             };
+            // currentEnemy = null; // currentEnemy retiré
             gameDifficulty = 0;
             gameStarted = false;
             chatHistory = [];
-            document.body.classList.remove('friendly-mode');
+            document.body.classList.remove('friendly-mode'); // Assure que c'est toujours le mode Gore
             mainTextDiv.innerHTML = ''; // Nettoyer le texte
             gameImage.src = ''; // Nettoyer l'image
             playerInput.value = '';
-            playerInput.placeholder = "Votre nom et mode (Ex: Arthur Mode Gore)";
+            playerInput.placeholder = "Ex: Gérard"; // Placeholder simplifié
             updateStatsUI();
+            // displayEnemyStats(null); // Fonction displayEnemyStats retirée
         }
 
         /**
-         * Enregistre le score du joueur dans Firestore si c'est un top 5.
+         * Enregistre le score du joueur dans Firestore si c'est un top 10.
          * @param {string} name - Nom du joueur.
          * @param {number} score - Score du joueur.
-         * @param {string} mode - Mode de jeu ('Gore' ou 'Amical').
+         * @param {string} mode - Mode de jeu ('Gore').
          */
         async function saveScore(name, score, mode) {
             if (!authReady || !db || !userId) {
@@ -958,7 +1056,8 @@
                 return;
             }
             try {
-                const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboards`, mode.toLowerCase());
+                // Toujours enregistrer en mode 'gore'
+                const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboards`, 'gore');
                 const leaderboardSnap = await getDoc(leaderboardDocRef);
 
                 let scores = [];
@@ -968,9 +1067,9 @@
 
                 scores.push({ name: name, score: score, timestamp: Date.now(), userId: userId });
 
-                // Trier et garder seulement les 5 meilleurs scores
+                // Trier et garder seulement les 10 meilleurs scores
                 scores.sort((a, b) => b.score - a.score);
-                scores = scores.slice(0, 5);
+                scores = scores.slice(0, 10);
 
                 await setDoc(leaderboardDocRef, { topScores: scores });
                 console.log("Score enregistré avec succès !");
@@ -981,7 +1080,7 @@
         }
 
         /**
-         * Affiche les classements depuis Firestore.
+         * Affiche les classements depuis Firestore (seulement le mode Gore).
          */
         async function displayLeaderboards() {
             if (!authReady || !db || !userId) {
@@ -993,40 +1092,39 @@
             leaderboardsDisplay.innerHTML = ''; // Nettoyer l'affichage précédent
             showLoading(true, "Chargement des classements...");
 
-            const modes = ['gore', 'amical'];
-            for (const mode of modes) {
-                try {
-                    const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboards`, mode);
-                    const leaderboardSnap = await getDoc(leaderboardDocRef);
+            // Toujours charger le classement Gore
+            const mode = 'gore';
+            try {
+                const leaderboardDocRef = doc(db, `artifacts/${appId}/public/data/leaderboards`, mode);
+                const leaderboardSnap = await getDoc(leaderboardDocRef);
 
-                    let scores = [];
-                    if (leaderboardSnap.exists()) {
-                        scores = leaderboardSnap.data().topScores || [];
-                    }
-
-                    const section = document.createElement('div');
-                    section.classList.add('leaderboard-section');
-                    section.innerHTML = `<h3>Mode ${mode.charAt(0).toUpperCase() + mode.slice(1)}</h3><ol></ol>`;
-                    const ol = section.querySelector('ol');
-
-                    if (scores.length === 0) {
-                        ol.innerHTML = '<li>Aucun score enregistré.</li>';
-                    } else {
-                        scores.forEach((s, index) => {
-                            const li = document.createElement('li');
-                            li.innerHTML = `<span>${index + 1}. ${s.name}</span> <span class="score-value">${s.score}</span>`;
-                            ol.appendChild(li);
-                        });
-                    }
-                    leaderboardsDisplay.appendChild(section);
-
-                } catch (error) {
-                    console.error(`Erreur lors du chargement du classement ${mode}:`, error);
-                    const section = document.createElement('div');
-                    section.classList.add('leaderboard-section');
-                    section.innerHTML = `<h3>Mode ${mode.charAt(0).toUpperCase() + mode.slice(1)}</h3><p>Erreur de chargement.</p>`;
-                    leaderboardsDisplay.appendChild(section);
+                let scores = [];
+                if (leaderboardSnap.exists()) {
+                    scores = leaderboardSnap.data().topScores || [];
                 }
+
+                const section = document.createElement('div');
+                section.classList.add('leaderboard-section');
+                section.innerHTML = `<h3>Classement Mode Gore</h3><ol></ol>`;
+                const ol = section.querySelector('ol');
+
+                if (scores.length === 0) {
+                    ol.innerHTML = '<li>Aucun score enregistré.</li>';
+                } else {
+                    scores.forEach((s, index) => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<span>${index + 1}. ${s.name}</span> <span class="score-value">${s.score}</span>`;
+                        ol.appendChild(li);
+                    });
+                }
+                leaderboardsDisplay.appendChild(section);
+
+            } catch (error) {
+                console.error(`Erreur lors du chargement du classement ${mode}:`, error);
+                const section = document.createElement('div');
+                section.classList.add('leaderboard-section');
+                section.innerHTML = `<h3>Classement Mode Gore</h3><p>Erreur de chargement.</p>`;
+                leaderboardsDisplay.appendChild(section);
             }
             showLoading(false);
         }
